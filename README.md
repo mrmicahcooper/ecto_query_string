@@ -1,6 +1,6 @@
 # EctoQueryString
 
-**TODO: Add description**
+A simple DSL for creating ecto queries from with a query string
 
 ## Installation
 
@@ -15,7 +15,20 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/ecto_query_string](https://hexdocs.pm/ecto_query_string).
+## Usage
 
+You can chain the following in in order tha makes sense for your query:
+
+Query String | Ecto Query
+-------------|-----------
+`foo=bar`      | `where(x.foo = ^"bar")`
+`foo=bar,baz`  | `where(x.foo in ^["bar", "baz"])`
+`!foo=bar`     | `where(x.foo != ^"bar")`
+`!foo=bar,baz` | `where(x.foo not in ^["bar", "baz"])`
+`@=foo,bar`    | `select([:foo, :bar])`
+`...=.:99`     | `limit: 99`
+`...=40:.`     | `offset: 40`
+`...=40:99`    | `offset: 40, limit: 99`
+`...foo=.:99`  | `where(x.foo < 99)`
+`...foo=40:.`  | `where(x.foo > 40)`
+`...foo=40:99` | `where(x.foo < 99 and x.foo > 40)`
