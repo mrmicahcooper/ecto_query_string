@@ -3,9 +3,17 @@ defmodule EctoQueryStringTest do
   import EctoQueryString, only: [string_query: 2]
   import Ecto.Query
 
-  setup do
-    query = from(user in User)
-    {:ok, %{query: query}}
+  defmodule User do
+    use Ecto.Schema
+
+    schema "users" do
+      field(:username, :string)
+      field(:email, :string)
+      field(:age, :integer)
+      field(:password, :string, virtual: true)
+      field(:password_digest, :string)
+      timestamps()
+    end
   end
 
   defp assert_wheres_match(query1, query2) do
@@ -18,6 +26,11 @@ defmodule EctoQueryStringTest do
 
   defp sans_location_data(%{} = map), do: Map.drop(map, [:file, :line])
   defp sans_location_data(maps), do: Enum.map(maps, &sans_location_data/1)
+
+  setup do
+    query = from(user in User)
+    {:ok, %{query: query}}
+  end
 
   test "all", %{query: query} do
     querystring = ""
@@ -33,10 +46,10 @@ defmodule EctoQueryStringTest do
     assert_wheres_match(string_query, expected_query)
   end
 
-  test "WHERE key IN value", %{query: query} do
+  test("WHERE key IN value", %{query: query}) do
     querystring = "email=user@clank.us,micah@clank.us"
     string_query = string_query(query, querystring)
-    expected_query = from(user in User, where: user.email in ^["user@clank.us", "micah@clank.us"])
+    expected_query = from( user in User, where: user.email in ^["user@clank.us", "micah@clank.us"])
     assert_wheres_match(string_query, expected_query)
   end
 
@@ -159,4 +172,5 @@ defmodule EctoQueryStringTest do
     expected_query = from(user in User, order_by: ^[desc: :username])
     assert_match(string_query.order_bys, expected_query.order_bys)
   end
+
 end
