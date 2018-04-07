@@ -1,6 +1,6 @@
 defmodule EctoQueryString do
   import Ecto.Query
-  # "!@$#*()-_;:',.~[]"
+  #/"!@$#*()-_;:',.~[]"
 
   def string_query(query, ""), do: string_query(query, %{})
 
@@ -109,6 +109,44 @@ defmodule EctoQueryString do
 
       {key, value} when is_list(value) ->
         from(acc, where: ^dynamic([query], field(query, ^key) not in ^value))
+    end
+  end
+
+  defp dynamic_segment({"/!" <> key, value}, acc) do
+    value = String.split(value, ",")
+    new_key = schema_fields(key, acc) |> List.first()
+
+    case {new_key, value} do
+      {nil, _} ->
+        acc
+
+      {_, nil} ->
+        acc
+
+      {key, [value]} ->
+        from(acc, or_where: ^dynamic([query], field(query, ^key) != ^value))
+
+      {key, value} when is_list(value) ->
+        from(acc, or_where: ^dynamic([query], field(query, ^key) not in ^value))
+    end
+  end
+
+  defp dynamic_segment({"/" <> key, value}, acc) do
+    value = String.split(value, ",")
+    new_key = schema_fields(key, acc) |> List.first()
+
+    case {new_key, value} do
+      {nil, _} ->
+        acc
+
+      {_, nil} ->
+        acc
+
+      {key, [value]} ->
+        from(acc, or_where: ^dynamic([query], field(query, ^key) == ^value))
+
+      {key, value} when is_list(value) ->
+        from(acc, or_where: ^dynamic([query], field(query, ^key) in ^value))
     end
   end
 

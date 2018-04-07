@@ -47,9 +47,16 @@ defmodule EctoQueryStringTest do
   end
 
   test("WHERE key IN value", %{query: query}) do
-    querystring = "email=user@clank.us,micah@clank.us"
+    querystring = "email=user@clank.us,micah@clank.us&username=mrmicahcooper"
     string_query = string_query(query, querystring)
-    expected_query = from( user in User, where: user.email in ^["user@clank.us", "micah@clank.us"])
+
+    expected_query =
+      from(
+        user in User,
+        where: user.email in ^["user@clank.us", "micah@clank.us"],
+        where: user.username == ^"mrmicahcooper"
+      )
+
     assert_wheres_match(string_query, expected_query)
   end
 
@@ -152,6 +159,34 @@ defmodule EctoQueryStringTest do
     assert_wheres_match(string_query, expected_query)
   end
 
+  test "OR WHERE key = value", %{query: query} do
+    querystring = "/email=a@b.co"
+    string_query = string_query(query, querystring)
+    expected_query = from(user in User, or_where: user.email == ^"a@b.co")
+    assert_wheres_match(string_query, expected_query)
+  end
+
+  test "OR WHERE key != value", %{query: query} do
+    querystring = "/!email=a@b.co"
+    string_query = string_query(query, querystring)
+    expected_query = from(user in User, or_where: user.email != ^"a@b.co")
+    assert_wheres_match(string_query, expected_query)
+  end
+
+  test "OR WHERE key NOT IN value", %{query: query} do
+    querystring = "/!email=a@b.co,c@d.co"
+    string_query = string_query(query, querystring)
+    expected_query = from(user in User, or_where: user.email not in ^["a@b.co", "c@d.co"])
+    assert_wheres_match(string_query, expected_query)
+  end
+
+  test "OR WHERE key IN value", %{query: query} do
+    querystring = "/email=a@b.co,c@d.co"
+    string_query = string_query(query, querystring)
+    expected_query = from(user in User, or_where: user.email in ^["a@b.co", "c@d.co"])
+    assert_wheres_match(string_query, expected_query)
+  end
+
   test "SELECT values", %{query: query} do
     querystring = "@=username,email"
     string_query = string_query(query, querystring)
@@ -172,5 +207,4 @@ defmodule EctoQueryStringTest do
     expected_query = from(user in User, order_by: ^[desc: :username])
     assert_match(string_query.order_bys, expected_query.order_bys)
   end
-
 end

@@ -22,6 +22,10 @@ Query String    | Ecto Query
 `...foo=40:.`   | `where(x.foo > 40)`
 `...foo=40:99`  | `where(x.foo < 99 and x.foo > 40)`
 `...foo=40:99`  | `where(x.foo < 99 and x.foo > 40)`
+`/foo=bar`      | `or_where(x.foo = ^"bar")`
+`/foo=bar,baz`  | `or_where(x.foo in ^["bar", "baz"])`
+`/!foo=bar`     | `or_where(x.foo != ^"bar")`
+`/!foo=bar,baz` | `or_where(x.foo not in ^["bar", "baz"])`
 `...=.:99`      | `limit: 99`
 `...=40:.`      | `offset: 40`
 `...=40:99`     | `offset: 40, limit: 99`
