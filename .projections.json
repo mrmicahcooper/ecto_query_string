@@ -23,7 +23,7 @@
     "type": "test",
     "alternate": "lib/{}.ex",
     "template":[
-      "defmodule {camelcase|dot}Test do",
+      "defmodule {camelcase|dot|capitalize}Test do",
       "  use ExUnit.Case#, async: true",
       "",
       "end",
