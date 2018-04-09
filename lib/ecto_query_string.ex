@@ -60,16 +60,22 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"..." <> key, value}, acc) do
     if new_key = queryable(acc, key) do
-      dynamic =
-        case String.split(value, ":") do
-          [".", "."] -> acc
-          [".", max] -> dynamic([q], field(q, ^new_key) < ^max)
-          [min, "."] -> dynamic([q], field(q, ^new_key) > ^min)
-          [min, max] -> dynamic([q], field(q, ^new_key) > ^min and field(q, ^new_key) < ^max)
-          :else -> acc
-        end
+      case String.split(value, ":") do
+        [".", "."] ->
+          acc
 
-      from(acc, where: ^dynamic)
+        [".", max] ->
+          from(acc, where: ^dynamic([q], field(q, ^new_key) < ^max))
+
+        [min, "."] ->
+          from(acc, where: ^dynamic([q], field(q, ^new_key) > ^min))
+
+        [min, max] ->
+          from(acc, where: ^dynamic([q], field(q, ^new_key) > ^min and field(q, ^new_key) < ^max))
+
+        :else ->
+          acc
+      end
     else
       acc
     end
@@ -118,6 +124,9 @@ defmodule EctoQueryString do
 
       {key, value} when is_list(value) ->
         from(acc, where: ^dynamic([query], field(query, ^key) not in ^value))
+
+      _ ->
+        acc
     end
   end
 
@@ -137,6 +146,9 @@ defmodule EctoQueryString do
 
       {key, value} when is_list(value) ->
         from(acc, or_where: ^dynamic([query], field(query, ^key) not in ^value))
+
+      _ ->
+        acc
     end
   end
 
@@ -156,6 +168,9 @@ defmodule EctoQueryString do
 
       {key, value} when is_list(value) ->
         from(acc, or_where: ^dynamic([query], field(query, ^key) in ^value))
+
+      _ ->
+        acc
     end
   end
 
@@ -175,6 +190,9 @@ defmodule EctoQueryString do
 
       {key, value} when is_list(value) ->
         from(acc, where: ^dynamic([query], field(query, ^key) in ^value))
+
+      _ ->
+        acc
     end
   end
 end
