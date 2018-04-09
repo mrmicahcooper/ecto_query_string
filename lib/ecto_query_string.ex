@@ -14,7 +14,7 @@ defmodule EctoQueryString do
     query(query, params)
   end
 
-  def queryable?(query, field) do
+  def queryable(query, field) do
     fields = schema_fields(query)
 
     if(Enum.find(fields, &Kernel.==(&1, field))) do
@@ -59,7 +59,7 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"..." <> key, value}, acc) do
-    if new_key = queryable?(acc, key) do
+    if new_key = queryable(acc, key) do
       dynamic =
         case String.split(value, ":") do
           [".", "."] -> acc
@@ -90,21 +90,21 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"i~" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
-    new_key = queryable?(acc, key)
+    new_key = queryable(acc, key)
     dynamic = dynamic([q], ilike(field(q, ^new_key), ^value))
     from(acc, where: ^dynamic)
   end
 
   defp dynamic_segment({"~" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
-    new_key = queryable?(acc, key)
+    new_key = queryable(acc, key)
     dynamic = dynamic([q], like(field(q, ^new_key), ^value))
     from(acc, where: ^dynamic)
   end
 
   defp dynamic_segment({"!" <> key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(acc, key)
+    new_key = queryable(acc, key)
 
     case {new_key, value} do
       {nil, _} ->
@@ -123,7 +123,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"/!" <> key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(acc, key)
+    new_key = queryable(acc, key)
 
     case {new_key, value} do
       {nil, _} ->
@@ -142,7 +142,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"/" <> key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(acc, key)
+    new_key = queryable(acc, key)
 
     case {new_key, value} do
       {nil, _} ->
@@ -161,7 +161,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(acc, key)
+    new_key = queryable(acc, key)
 
     case {new_key, value} do
       {nil, _} ->
