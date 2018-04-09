@@ -1,60 +1,8 @@
 defmodule EctoQueryStringTest do
   use ExUnit.Case, async: true
+  use QueryHelpers
   import EctoQueryString
   import Ecto.Query
-
-  defmodule User do
-    use Ecto.Schema
-
-    schema "users" do
-      field(:username, :string)
-      field(:email, :string)
-      field(:age, :integer)
-      field(:password, :string, virtual: true)
-      field(:password_digest, :string)
-      timestamps()
-    end
-
-    def selectable, do: ~w[username email]a
-    def queryable, do: ~w[username email]a
-
-    def not_queryable, do: ~w[username email]a
-    def not_selectable, do: ~w[username email]a
-  end
-
-  defmodule Foo do
-    use Ecto.Schema
-
-    schema "foos" do
-      field(:foo, :integer)
-      field(:title, :string)
-      field(:description, :string)
-    end
-  end
-
-  defmodule Bar do
-    use Ecto.Schema
-
-    schema "bars" do
-      field(:bar, :integer)
-      field(:title, :string)
-      field(:description, :string)
-    end
-
-    def queryable_fields, do: [:bar, :title]
-  end
-
-  defp assert_queries_match(query1, query2) do
-    assert cleaned(query1.wheres) == cleaned(query2.wheres)
-    assert cleaned(query1.limit) == cleaned(query2.limit)
-    assert cleaned(query1.offset) == cleaned(query2.offset)
-    assert cleaned(query1.order_bys) == cleaned(query2.order_bys)
-    assert cleaned(query1.joins) == cleaned(query2.joins)
-  end
-
-  defp cleaned(%{} = map), do: Map.drop(map, [:file, :line])
-  defp cleaned(nil), do: nil
-  defp cleaned(maps), do: Enum.map(maps, &cleaned/1)
 
   test ".fields gets the fields from a query.from" do
     query = from(f in Foo)
