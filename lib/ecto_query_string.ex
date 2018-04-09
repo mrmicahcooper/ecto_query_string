@@ -14,7 +14,7 @@ defmodule EctoQueryString do
     query(query, params)
   end
 
-  def queryable?(field, query) do
+  def queryable?(query, field) do
     fields = schema_fields(query)
 
     if(Enum.find(fields, &Kernel.==(&1, field))) do
@@ -22,7 +22,7 @@ defmodule EctoQueryString do
     end
   end
 
-  def selectable(fields, query) do
+  def selectable(query, fields) do
     fields =
       fields
       |> String.split(",")
@@ -44,7 +44,7 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"@", value}, acc) do
-    attrs = selectable(value, acc)
+    attrs = selectable(acc, value)
     from(acc, select: ^attrs)
   end
 
@@ -59,7 +59,7 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"..." <> key, value}, acc) do
-    if new_key = queryable?(key, acc) do
+    if new_key = queryable?(acc, key) do
       dynamic =
         case String.split(value, ":") do
           [".", "."] -> acc
@@ -76,14 +76,13 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"$asc", values}, acc) do
-    order_values = selectable(values, acc)
+    order_values = selectable(acc, values)
     from(acc, order_by: ^order_values)
   end
 
   defp dynamic_segment({"$desc", values}, acc) do
     order_values =
-      values
-      |> selectable(acc)
+      selectable(acc, values)
       |> Enum.map(fn value -> {:desc, value} end)
 
     from(acc, order_by: ^order_values)
@@ -91,21 +90,21 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"i~" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
-    new_key = queryable?(key, acc)
+    new_key = queryable?(acc, key)
     dynamic = dynamic([q], ilike(field(q, ^new_key), ^value))
     from(acc, where: ^dynamic)
   end
 
   defp dynamic_segment({"~" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
-    new_key = queryable?(key, acc)
+    new_key = queryable?(acc, key)
     dynamic = dynamic([q], like(field(q, ^new_key), ^value))
     from(acc, where: ^dynamic)
   end
 
   defp dynamic_segment({"!" <> key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(key, acc)
+    new_key = queryable?(acc, key)
 
     case {new_key, value} do
       {nil, _} ->
@@ -124,7 +123,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"/!" <> key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(key, acc)
+    new_key = queryable?(acc, key)
 
     case {new_key, value} do
       {nil, _} ->
@@ -143,7 +142,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"/" <> key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(key, acc)
+    new_key = queryable?(acc, key)
 
     case {new_key, value} do
       {nil, _} ->
@@ -162,7 +161,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({key, value}, acc) do
     value = String.split(value, ",")
-    new_key = queryable?(key, acc)
+    new_key = queryable?(acc, key)
 
     case {new_key, value} do
       {nil, _} ->

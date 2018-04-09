@@ -11,9 +11,9 @@ defmodule EctoQueryStringTest do
 
   test ".queryable returns the field if its in the query's schema" do
     query = from(f in Foo)
-    assert queryable?("title", query) == :title
-    assert queryable?("description", query) == :description
-    assert queryable?("bar", query) == nil
+    assert queryable?(query, "title") == :title
+    assert queryable?(query, "description") == :description
+    assert queryable?(query, "bar") == nil
   end
 
   setup do
