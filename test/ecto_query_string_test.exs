@@ -57,86 +57,79 @@ defmodule EctoQueryStringTest do
   end
 
   test "WHERE key LIKE value%", %{query: query} do
-    querystring = "~email=user*"
+    querystring = "like:email=user*"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: like(user.email, ^"user%"))
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key LIKE %value", %{query: query} do
-    querystring = "~email=*clank.us"
+    querystring = "like:email=*clank.us"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: like(user.email, ^"%clank.us"))
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key LIKE %value%", %{query: query} do
-    querystring = "~email=*clank.us*"
+    querystring = "like:email=*clank.us*"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: like(user.email, ^"%clank.us%"))
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key ILIKE value%", %{query: query} do
-    querystring = "i~email=*clank.us*"
+    querystring = "ilike:email=*clank.us*"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: ilike(user.email, ^"%clank.us%"))
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key ILIKE %value", %{query: query} do
-    querystring = "i~email=*clank.us"
+    querystring = "ilike:email=*clank.us"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: ilike(user.email, ^"%clank.us"))
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key ILIKE %value%", %{query: query} do
-    querystring = "i~email=*@*"
+    querystring = "ilike:email=*@*"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: ilike(user.email, ^"%@%"))
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key > value", %{query: query} do
-    querystring = "...age=30:."
+    querystring = "greater:age=30"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: user.age > ^"30")
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key < value", %{query: query} do
-    querystring = "...age=.:100"
+    querystring = "less:age=100"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: user.age < ^"100")
     assert_queries_match(string_query, expected_query)
   end
 
   test "WHERE key < max and key > min ", %{query: query} do
-    querystring = "...age=100:200"
+    querystring = "range:age=100:200"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: user.age > ^"100" and user.age < ^"200")
     assert_queries_match(string_query, expected_query)
   end
 
   test "LIMIT max", %{query: query} do
-    querystring = "...=.:2"
+    querystring = "limit=2"
     string_query = query(query, querystring)
     expected_query = from(user in User, limit: ^"2")
     assert_queries_match(string_query, expected_query)
   end
 
   test "OFFSET min", %{query: query} do
-    querystring = "...=2:."
+    querystring = "offset=2"
     string_query = query(query, querystring)
     expected_query = from(user in User, offset: ^"2")
-    assert_queries_match(string_query, expected_query)
-  end
-
-  test "OFFSET min and LIMIT max", %{query: query} do
-    querystring = "...=100:150"
-    string_query = query(query, querystring)
-    expected_query = from(user in User, limit: ^"150", offset: ^"100")
     assert_queries_match(string_query, expected_query)
   end
 
@@ -148,49 +141,49 @@ defmodule EctoQueryStringTest do
   end
 
   test "OR WHERE key = value", %{query: query} do
-    querystring = "/email=a@b.co"
+    querystring = "or:email=a@b.co"
     string_query = query(query, querystring)
     expected_query = from(user in User, or_where: user.email == ^"a@b.co")
     assert_queries_match(string_query, expected_query)
   end
 
   test "OR WHERE key != value", %{query: query} do
-    querystring = "/!email=a@b.co"
+    querystring = "!or:email=a@b.co"
     string_query = query(query, querystring)
     expected_query = from(user in User, or_where: user.email != ^"a@b.co")
     assert_queries_match(string_query, expected_query)
   end
 
   test "OR WHERE key NOT IN value", %{query: query} do
-    querystring = "/!email=a@b.co,c@d.co"
+    querystring = "!or:email=a@b.co,c@d.co"
     string_query = query(query, querystring)
     expected_query = from(user in User, or_where: user.email not in ^["a@b.co", "c@d.co"])
     assert_queries_match(string_query, expected_query)
   end
 
   test "OR WHERE key IN value", %{query: query} do
-    querystring = "/email=a@b.co,c@d.co"
+    querystring = "or:email=a@b.co,c@d.co"
     string_query = query(query, querystring)
     expected_query = from(user in User, or_where: user.email in ^["a@b.co", "c@d.co"])
     assert_queries_match(string_query, expected_query)
   end
 
   test "SELECT values", %{query: query} do
-    querystring = "@=username,email"
+    querystring = "select=username,email"
     string_query = query(query, querystring)
     expected_query = from(user in User, select: ^[:username, :email])
     assert_queries_match(string_query, expected_query)
   end
 
   test "ORDER_BY values ASC", %{query: query} do
-    querystring = "$asc=username,email"
+    querystring = "ascend=username,email"
     string_query = query(query, querystring)
     expected_query = from(user in User, order_by: ^[asc: :username, asc: :email])
     assert_queries_match(string_query, expected_query)
   end
 
   test "ORDER_BY values DESC", %{query: query} do
-    querystring = "$desc=username"
+    querystring = "descend=username"
     string_query = query(query, querystring)
     expected_query = from(user in User, order_by: ^[desc: :username])
     assert_queries_match(string_query, expected_query)
