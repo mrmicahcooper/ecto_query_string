@@ -8,27 +8,26 @@ You can chain the following in any order that makes sense for your query:
 
 Query String    | Ecto Query
 --------------- | -----------
-`foo=bar`       | `where(x.foo = ^"bar")`
-`foo=bar,baz`   | `where(x.foo in ^["bar", "baz"])`
-`!foo=bar`      | `where(x.foo != ^"bar")`
-`!foo=bar,baz`  | `where(x.foo not in ^["bar", "baz"])`
-`~foo=bar*`     | `where: like(x.foo, ^"bar%")`
-`~foo=*bar`     | `where: like(x.foo, ^"%bar")`
-`~foo=*bar*`    | `where: like(x.foo, ^"%bar%")`
-`i~foo=bar*`    | `where: ilike(x.foo, ^"bar%")`
-`i~foo=*bar`    | `where: ilike(x.foo, ^"%bar")`
-`i~foo=*bar*`   | `where: ilike(x.foo, ^"%bar%")`
-`...foo=.:99`   | `where(x.foo < 99)`
-`...foo=40:.`   | `where(x.foo > 40)`
-`...foo=40:99`  | `where(x.foo < 99 and x.foo > 40)`
-`...foo=40:99`  | `where(x.foo < 99 and x.foo > 40)`
-`/foo=bar`      | `or_where(x.foo = ^"bar")`
-`/foo=bar,baz`  | `or_where(x.foo in ^["bar", "baz"])`
-`/!foo=bar`     | `or_where(x.foo != ^"bar")`
-`/!foo=bar,baz` | `or_where(x.foo not in ^["bar", "baz"])`
-`...=.:99`      | `limit: 99`
-`...=40:.`      | `offset: 40`
-`...=40:99`     | `offset: 40, limit: 99`
-`@=foo,bar`     | `select([:foo, :bar])`
-`$asc=foo,bar`  | `order_by([:foo, :bar])`
-`$desc=foo,bar` | `order_by([desc: :foo, desc: :bar])`
+`foo=bar`            | `where(x.foo = ^"bar")`
+`foo=bar,baz`        | `where(x.foo in ^["bar", "baz"])`
+`!foo=bar`           | `where(x.foo != ^"bar")`
+`!foo=bar,baz`       | `where(x.foo not in ^["bar", "baz"])`
+`like:foo=bar*`      | `where: like(x.foo, ^"bar%")`
+`like:foo=*bar`      | `where: like(x.foo, ^"%bar")`
+`like:foo=*bar*`     | `where: like(x.foo, ^"%bar%")`
+`ilike:foo=bar*`     | `where: ilike(x.foo, ^"bar%")`
+`ilike:foo=*bar`     | `where: ilike(x.foo, ^"%bar")`
+`ilike:foo=*bar*`    | `where: ilike(x.foo, ^"%bar%")`
+`less:foo=.:99`      | `where(x.foo < 99)`
+`greater:foo=40:.`   | `where(x.foo > 40)`
+`range:foo=40:99`    | `where(x.foo < 99 and x.foo > 40)`
+`or:foo=bar`         | `or_where(x.foo = ^"bar")`
+`or:foo=bar,baz`     | `or_where(x.foo in ^["bar", "baz"])`
+`!or:foo=bar`        | `or_where(x.foo != ^"bar")`
+`!or:foo=bar,baz`    | `or_where(x.foo not in ^["bar", "baz"])`
+`limit=.:99`         | `limit: 99`
+`offset=40:.`        | `offset: 40`
+`between=40:99`      | `offset: 40, limit: 99`
+`select=foo,bar`     | `select([:foo, :bar])`
+`ascend=foo,bar`     | `order_by([:foo, :bar])`
+`descend=foo,bar`    | `order_by([desc: :foo, desc: :bar])`
