@@ -6,7 +6,7 @@ defmodule EctoQueryStringTest do
 
   test ".fields gets the fields from a query.from" do
     query = from(f in Foo)
-    assert schema_fields(query) == ~w[id foo title description]
+    assert schema_fields(query) == ~w[bars description foo id title]
   end
 
   test ".queryable returns the field if its in the query's schema" do

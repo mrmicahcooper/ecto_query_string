@@ -5,5 +5,6 @@ defmodule Foo do
     field(:foo, :integer)
     field(:title, :string)
     field(:description, :string)
+    has_many(:bars, Bar)
   end
 end
