@@ -5,10 +5,12 @@ defmodule EctoQueryString.MixProject do
     [
       app: :ecto_query_string,
       version: "0.1.0",
+      description: "Easy querying with ecto and query string params",
       elixir: "~> 1.6",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
@@ -26,6 +28,15 @@ defmodule EctoQueryString.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.0"}
+    ]
+  end
+
+  defp package do
+    [
+      name: "ecto_query_string",
+      maintainers: ["Micah Cooper"],
+      licenses: ["Apache 2.0"],
+      links: %{"GitHub" => "https://github.com/mrmicahcooper/ecto_jsonapi"}
     ]
   end
 end
