@@ -18,35 +18,28 @@ defmodule EctoQueryString do
     if field in schema_fields(query), do: String.to_atom(field)
   end
 
-  def selectable(query, fields) do
-    fields =
-      fields
-      |> String.split(",")
-      |> Enum.map(&String.trim/1)
+  def selectable(query, fields_string) do
+    fields = fields_string |> String.split(",") |> Enum.map(&String.trim/1)
+    schema_fields = schema_fields(query)
 
-    for field <- fields, field in schema_fields(query) do
+    for field <- fields, field in schema_fields do
       String.to_atom(field)
     end
   end
 
   def schema_fields(query) do
-    source_module = query.from.source |> elem(1)
-
-    source_module.__schema__(:fields) |> Enum.map(&to_string/1)
+    query.from.source
+    |> elem(1)
+    |> apply(:__schema__, [:fields])
+    |> Enum.map(&to_string/1)
   end
 
   defp dynamic_segment({"select", value}, acc) do
-    attrs = selectable(acc, value)
-    from(acc, select: ^attrs)
+    from(acc, select: ^selectable(acc, value))
   end
 
-  defp dynamic_segment({"limit", value}, acc) do
-    from(acc, limit: ^value)
-  end
-
-  defp dynamic_segment({"offset", value}, acc) do
-    from(acc, offset: ^value)
-  end
+  defp dynamic_segment({"limit", value}, acc), do: from(acc, limit: ^value)
+  defp dynamic_segment({"offset", value}, acc), do: from(acc, offset: ^value)
 
   defp dynamic_segment({"greater:" <> key, value}, acc) do
     if new_key = queryable(acc, key) do
