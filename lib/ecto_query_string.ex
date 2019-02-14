@@ -15,11 +15,7 @@ defmodule EctoQueryString do
   end
 
   def queryable(query, field) do
-    fields = schema_fields(query)
-
-    if(Enum.find(fields, &Kernel.==(&1, field))) do
-      String.to_atom(field)
-    end
+    if field in schema_fields(query), do: String.to_atom(field)
   end
 
   def selectable(query, fields) do
@@ -28,19 +24,15 @@ defmodule EctoQueryString do
       |> String.split(",")
       |> Enum.map(&String.trim/1)
 
-    schema_fields = schema_fields(query)
-
-    fields = for field <- fields, field && field in schema_fields, do: field
-    Enum.map(fields, &String.to_atom/1)
+    for field <- fields, field in schema_fields(query) do
+      String.to_atom(field)
+    end
   end
 
   def schema_fields(query) do
-    query.from
-    |> elem(1)
-    |> Map.from_struct()
-    |> Map.drop([:__meta__])
-    |> Map.keys()
-    |> Enum.map(&to_string/1)
+    source_module = query.from.source |> elem(1)
+
+    source_module.__schema__(:fields) |> Enum.map(&to_string/1)
   end
 
   defp dynamic_segment({"select", value}, acc) do
