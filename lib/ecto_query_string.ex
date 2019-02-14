@@ -34,6 +34,23 @@ defmodule EctoQueryString do
     |> Enum.map(&to_string/1)
   end
 
+  def orderable(query, fields_string) do
+    fields =
+      fields_string
+      |> String.split(",")
+      |> Enum.map(&String.trim/1)
+      |> Enum.map(&order_field/1)
+
+    schema_fields = schema_fields(query)
+
+    for {order, field} <- fields, field in schema_fields do
+      {order, String.to_atom(field)}
+    end
+  end
+
+  defp order_field("-" <> field), do: {:desc, field}
+  defp order_field(field), do: {:asc, field}
+
   defp dynamic_segment({"select", value}, acc) do
     from(acc, select: ^selectable(acc, value))
   end
@@ -78,6 +95,11 @@ defmodule EctoQueryString do
     else
       acc
     end
+  end
+
+  defp dynamic_segment({"sort", values}, acc) do
+    order_values = orderable(acc, values)
+    from(acc, order_by: ^order_values)
   end
 
   defp dynamic_segment({"ascend", values}, acc) do
