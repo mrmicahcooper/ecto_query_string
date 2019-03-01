@@ -14,6 +14,7 @@ defmodule EctoQueryStringTest do
     assert queryable(query, "title") == {:field, :title}
     assert queryable(query, "description") == {:field, :description}
     assert queryable(query, "bar") == {:field, nil}
+    assert queryable(query, "bars.title") == {:has_many, :bars, :title}
   end
 
   test ".selectable returns the existing fields in the same order" do

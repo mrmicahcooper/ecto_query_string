@@ -15,15 +15,31 @@ defmodule EctoQueryString do
   end
 
   def queryable(query, field) do
-    if field in schema_fields(query) do
-      {:field, String.to_atom(field)}
-    else
-      {:field, nil}
+    case String.split(field, ".", trim: true) do
+      [field] ->
+        if field in schema_fields(query) do
+          {:field, String.to_atom(field)}
+        else
+          {:field, nil}
+        end
+
+      [assoc, field] ->
+        if schema_has_many?(query, assoc, field) do
+          {:has_many, String.to_atom(assoc), String.to_atom(field)}
+        end
+
+      _ ->
+        nil
     end
   end
 
+  def schema_has_many?(query, assoc, field) do
+    assoc in schema_associations(query) &&
+      schema_association(query, String.to_atom(assoc)).cardinality == :many
+  end
+
   def selectable(query, fields_string) do
-    fields = fields_string |> String.split(",") |> Enum.map(&String.trim/1)
+    fields = fields_string |> String.split(",", trim: true)
     schema_fields = schema_fields(query)
 
     for field <- fields, field in schema_fields do
@@ -36,6 +52,19 @@ defmodule EctoQueryString do
     |> elem(1)
     |> apply(:__schema__, [:fields])
     |> Enum.map(&to_string/1)
+  end
+
+  def schema_associations(query) do
+    query.from.source
+    |> elem(1)
+    |> apply(:__schema__, [:associations])
+    |> Enum.map(&to_string/1)
+  end
+
+  def schema_association(query, assoc) do
+    query.from.source
+    |> elem(1)
+    |> apply(:__schema__, [:association, assoc])
   end
 
   def orderable(query, fields_string) do
