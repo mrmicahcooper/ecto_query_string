@@ -251,6 +251,12 @@ defmodule EctoQueryString do
         where = dynamic([query], field(query, ^key) in ^value)
         from(acc, where: ^where)
 
+      {{:assoc, assoc_field, key}, [value]} ->
+        from(parent in acc,
+          join: child in assoc(parent, ^assoc_field),
+          where: field(child, ^key) == ^value
+        )
+
       _ ->
         acc
     end

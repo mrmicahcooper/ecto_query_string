@@ -33,3 +33,13 @@ Query String        | Ecto Query
 `ascend=foo,bar`    | `order_by([:foo, :bar])`
 `descend=foo,bar`   | `order_by([desc: :foo, desc: :bar])`
 `sort=foo,-bar,baz` | `order_by([asc: :foo, desc: :bar, asc: :baz])`
+
+## Nested ecto queries
+
+`bars.baz=buz` results in:
+
+```
+|> join(:left, [x], children in assoc(x, :bars)
+|> where(children.baz == ^"buz"))
+
+```

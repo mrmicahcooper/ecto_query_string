@@ -9,7 +9,7 @@ defmodule EctoQueryStringTest do
     assert queryable(query, "title") == {:field, :title}
     assert queryable(query, "description") == {:field, :description}
     assert queryable(query, "bar") == {:field, nil}
-    assert queryable(query, "bars.title") == {:assoc, :bars, :title}
+    assert queryable(query, "bars.name") == {:assoc, :bars, :name}
   end
 
   test ".selectable returns the existing fields in the same order" do
@@ -45,6 +45,21 @@ defmodule EctoQueryStringTest do
         user in User,
         where: user.email in ^["user@clank.us", "micah@clank.us"],
         where: user.username == ^"mrmicahcooper"
+      )
+
+    assert_queries_match(string_query, expected_query)
+  end
+
+  test("JOINS t2 ON t1.foreign_key = t1.primary_key WHERE t2.key = value") do
+    querystring = "bars.name=coolname"
+    query = from(f in Foo)
+    string_query = query(query, querystring)
+
+    expected_query =
+      from(
+        foo in Foo,
+        join: bars in assoc(foo, :bars),
+        where: bars.name == ^"coolname"
       )
 
     assert_queries_match(string_query, expected_query)

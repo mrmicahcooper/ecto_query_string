@@ -3,8 +3,8 @@ defmodule Bar do
 
   schema "bars" do
     field(:bar, :integer)
-    field(:title, :string)
-    field(:description, :string)
+    field(:name, :string)
+    field(:content, :string)
     belongs_to(:foo, Foo)
   end
 end

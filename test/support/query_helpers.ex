@@ -10,9 +10,9 @@ defmodule QueryHelpers do
         assert cleaned(query1.select) == cleaned(query2.select)
       end
 
-      defp cleaned(%{} = map), do: Map.drop(map, [:file, :line])
-      defp cleaned(nil), do: nil
-      defp cleaned(maps), do: Enum.map(maps, &cleaned/1)
+      def cleaned(%{} = map), do: Map.drop(map, [:file, :line, :on])
+      def cleaned(nil), do: nil
+      def cleaned(maps), do: Enum.map(maps, &cleaned/1)
     end
   end
 end
