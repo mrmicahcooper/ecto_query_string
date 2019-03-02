@@ -176,6 +176,13 @@ defmodule EctoQueryStringTest do
     assert_queries_match(string_query, expected_query)
   end
 
+  test "SELECT values with 'fields'", %{query: query} do
+    querystring = "fields=username,email"
+    string_query = query(query, querystring)
+    expected_query = from(user in User, select: ^[:username, :email])
+    assert_queries_match(string_query, expected_query)
+  end
+
   test "ORDER_BY values ASC", %{query: query} do
     querystring = "ascend=username,email"
     string_query = query(query, querystring)

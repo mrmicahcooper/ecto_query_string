@@ -7,6 +7,7 @@ defmodule QueryHelpers do
         assert cleaned(query1.offset) == cleaned(query2.offset)
         assert cleaned(query1.order_bys) == cleaned(query2.order_bys)
         assert cleaned(query1.joins) == cleaned(query2.joins)
+        assert cleaned(query1.select) == cleaned(query2.select)
       end
 
       defp cleaned(%{} = map), do: Map.drop(map, [:file, :line])

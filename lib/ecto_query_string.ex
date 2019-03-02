@@ -72,6 +72,10 @@ defmodule EctoQueryString do
     from(acc, select: ^selectable(acc, value))
   end
 
+  defp dynamic_segment({"fields", value}, acc) do
+    from(acc, select: ^selectable(acc, value))
+  end
+
   defp dynamic_segment({"limit", value}, acc), do: from(acc, limit: ^value)
   defp dynamic_segment({"offset", value}, acc), do: from(acc, offset: ^value)
 

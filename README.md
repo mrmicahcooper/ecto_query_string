@@ -29,6 +29,7 @@ Query String        | Ecto Query
 `offset=40:.`       | `offset: 40`
 `between=40:99`     | `offset: 40, limit: 99`
 `select=foo,bar`    | `select([:foo, :bar])`
+`fields=foo,bar`    | `select([:foo, :bar])`
 `ascend=foo,bar`    | `order_by([:foo, :bar])`
 `descend=foo,bar`   | `order_by([desc: :foo, desc: :bar])`
 `sort=foo,-bar,baz` | `order_by([asc: :foo, desc: :bar, asc: :baz])`
