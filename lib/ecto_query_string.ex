@@ -1,5 +1,7 @@
 defmodule EctoQueryString do
   import Ecto.Query
+
+  alias EctoQueryString.Reflection
   # /"!@$#*()-_;:',.~[]"
 
   def query(query, ""), do: query(query, %{})
@@ -15,17 +17,17 @@ defmodule EctoQueryString do
   end
 
   def queryable(query, field) do
+    schema = Reflection.source_schema(query)
+
     case String.split(field, ".", trim: true) do
       [field] ->
-        if field in schema_fields(query) do
-          {:field, String.to_atom(field)}
-        else
-          {:field, nil}
-        end
+        {:field, Reflection.field(schema, field)}
 
       [assoc, field] ->
-        if schema_has_many?(query, assoc, field) do
-          {:has_many, String.to_atom(assoc), String.to_atom(field)}
+        if assoc_schema = Reflection.assoc_schema(schema, assoc) do
+          assoc = String.to_atom(assoc)
+          field = Reflection.field(assoc_schema, field)
+          {:assoc, assoc, field}
         end
 
       _ ->
@@ -33,38 +35,17 @@ defmodule EctoQueryString do
     end
   end
 
-  def schema_has_many?(query, assoc, field) do
-    assoc in schema_associations(query) &&
-      schema_association(query, String.to_atom(assoc)).cardinality == :many
-  end
-
   def selectable(query, fields_string) do
     fields = fields_string |> String.split(",", trim: true)
-    schema_fields = schema_fields(query)
+
+    schema_fields =
+      query
+      |> Reflection.source_schema()
+      |> Reflection.schema_fields()
 
     for field <- fields, field in schema_fields do
       String.to_atom(field)
     end
-  end
-
-  def schema_fields(query) do
-    query.from.source
-    |> elem(1)
-    |> apply(:__schema__, [:fields])
-    |> Enum.map(&to_string/1)
-  end
-
-  def schema_associations(query) do
-    query.from.source
-    |> elem(1)
-    |> apply(:__schema__, [:associations])
-    |> Enum.map(&to_string/1)
-  end
-
-  def schema_association(query, assoc) do
-    query.from.source
-    |> elem(1)
-    |> apply(:__schema__, [:association, assoc])
   end
 
   def orderable(query, fields_string) do
@@ -74,7 +55,10 @@ defmodule EctoQueryString do
       |> Enum.map(&String.trim/1)
       |> Enum.map(&order_field/1)
 
-    schema_fields = schema_fields(query)
+    schema_fields =
+      query
+      |> Reflection.source_schema()
+      |> Reflection.schema_fields()
 
     for {order, field} <- fields, field in schema_fields do
       {order, String.to_atom(field)}
@@ -244,26 +228,24 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({key, value}, acc) do
-    value = String.split(value, ",")
+    value = String.split(value, ",", trim: true)
 
-    new_key =
-      case queryable(acc, key) do
-        {:field, new_key} -> new_key
-        _ -> nil
-      end
+    queryable = queryable(acc, key)
 
-    case {new_key, value} do
-      {nil, _} ->
+    case {queryable, value} do
+      {{:field, nil}, _} ->
         acc
 
       {_, nil} ->
         acc
 
-      {key, [value]} ->
-        from(acc, where: ^dynamic([query], field(query, ^key) == ^value))
+      {{:field, key}, [value]} ->
+        where = dynamic([query], field(query, ^key) == ^value)
+        from(acc, where: ^where)
 
-      {key, value} when is_list(value) ->
-        from(acc, where: ^dynamic([query], field(query, ^key) in ^value))
+      {{:field, key}, value} when is_list(value) ->
+        where = dynamic([query], field(query, ^key) in ^value)
+        from(acc, where: ^where)
 
       _ ->
         acc

@@ -4,17 +4,12 @@ defmodule EctoQueryStringTest do
   import EctoQueryString
   import Ecto.Query
 
-  test ".fields gets the fields from a query.from" do
-    query = from(f in Foo)
-    assert schema_fields(query) == ~w[id foo title description]
-  end
-
   test ".queryable returns the field if its in the query's schema" do
     query = from(f in Foo)
     assert queryable(query, "title") == {:field, :title}
     assert queryable(query, "description") == {:field, :description}
     assert queryable(query, "bar") == {:field, nil}
-    assert queryable(query, "bars.title") == {:has_many, :bars, :title}
+    assert queryable(query, "bars.title") == {:assoc, :bars, :title}
   end
 
   test ".selectable returns the existing fields in the same order" do
