@@ -81,7 +81,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"greater:" <> key, value}, acc) do
     if {:field, new_key} = queryable(acc, key) do
-      from(acc, where: ^dynamic([q], field(q, ^new_key) > ^value))
+      from(query in acc, where: field(query, ^new_key) > ^value)
     else
       acc
     end
@@ -89,7 +89,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"less:" <> key, value}, acc) do
     if {:field, new_key} = queryable(acc, key) do
-      from(acc, where: ^dynamic([q], field(q, ^new_key) < ^value))
+      from(query in acc, where: field(query, ^new_key) < ^value)
     else
       acc
     end
@@ -102,13 +102,15 @@ defmodule EctoQueryString do
           acc
 
         [".", max] ->
-          from(acc, where: ^dynamic([q], field(q, ^new_key) < ^max))
+          from(query in acc, where: field(query, ^new_key) < ^max)
 
         [min, "."] ->
-          from(acc, where: ^dynamic([q], field(q, ^new_key) > ^min))
+          from(query in acc, where: field(query, ^new_key) > ^min)
 
         [min, max] ->
-          from(acc, where: ^dynamic([q], field(q, ^new_key) > ^min and field(q, ^new_key) < ^max))
+          from(query in acc,
+            where: field(query, ^new_key) > ^min and field(query, ^new_key) < ^max
+          )
 
         :else ->
           acc
@@ -139,15 +141,18 @@ defmodule EctoQueryString do
   defp dynamic_segment({"ilike:" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
     {:field, new_key} = queryable(acc, key)
-    dynamic = dynamic([q], ilike(field(q, ^new_key), ^value))
-    from(acc, where: ^dynamic)
+    from(query in acc, where: ilike(field(query, ^new_key), ^value))
   end
 
   defp dynamic_segment({"like:" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
-    {:field, new_key} = queryable(acc, key)
-    dynamic = dynamic([q], like(field(q, ^new_key), ^value))
-    from(acc, where: ^dynamic)
+    {:field, key} = queryable(acc, key)
+
+    if key do
+      from(query in acc, where: like(field(query, ^key), ^value))
+    else
+      acc
+    end
   end
 
   defp dynamic_segment({"!or:" <> key, value}, acc) do
@@ -167,10 +172,10 @@ defmodule EctoQueryString do
         acc
 
       {key, [value]} ->
-        from(acc, or_where: ^dynamic([query], field(query, ^key) != ^value))
+        from(query in acc, or_where: field(query, ^key) != ^value)
 
       {key, value} when is_list(value) ->
-        from(acc, or_where: ^dynamic([query], field(query, ^key) not in ^value))
+        from(query in acc, or_where: field(query, ^key) not in ^value)
 
       _ ->
         acc
@@ -194,10 +199,10 @@ defmodule EctoQueryString do
         acc
 
       {key, [value]} ->
-        from(acc, where: ^dynamic([query], field(query, ^key) != ^value))
+        from(query in acc, where: field(query, ^key) != ^value)
 
       {key, value} when is_list(value) ->
-        from(acc, where: ^dynamic([query], field(query, ^key) not in ^value))
+        from(query in acc, where: field(query, ^key) not in ^value)
 
       _ ->
         acc
@@ -221,10 +226,10 @@ defmodule EctoQueryString do
         acc
 
       {key, [value]} ->
-        from(acc, or_where: ^dynamic([query], field(query, ^key) == ^value))
+        from(query in acc, or_where: field(query, ^key) == ^value)
 
       {key, value} when is_list(value) ->
-        from(acc, or_where: ^dynamic([query], field(query, ^key) in ^value))
+        from(query in acc, or_where: field(query, ^key) in ^value)
 
       _ ->
         acc
@@ -244,12 +249,10 @@ defmodule EctoQueryString do
         acc
 
       {{:field, key}, [value]} ->
-        where = dynamic([query], field(query, ^key) == ^value)
-        from(acc, where: ^where)
+        from(query in acc, where: field(query, ^key) == ^value)
 
       {{:field, key}, value} when is_list(value) ->
-        where = dynamic([query], field(query, ^key) in ^value)
-        from(acc, where: ^where)
+        from(query in acc, where: field(query, ^key) in ^value)
 
       {{:assoc, assoc_field, key}, [value]} ->
         from(parent in acc,
