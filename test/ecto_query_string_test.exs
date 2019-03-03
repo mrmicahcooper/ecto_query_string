@@ -74,7 +74,7 @@ defmodule EctoQueryStringTest do
   end
 
   test "WHERE key LIKE value%", %{query: query} do
-    querystring = "like:email=user*"
+    querystring = "like:email=user**"
     string_query = query(query, querystring)
     expected_query = from(user in User, where: like(user.email, ^"user%"))
     assert_queries_match(string_query, expected_query)

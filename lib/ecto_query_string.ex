@@ -130,7 +130,7 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"ilike:" <> key, value}, acc) do
-    value = String.replace(value, "*", "%")
+    value = String.replace(value, ~r/\*+/, "%")
 
     case queryable(acc, key) do
       {:field, nil, _} -> acc
@@ -139,7 +139,7 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"like:" <> key, value}, acc) do
-    value = String.replace(value, "*", "%")
+    value = String.replace(value, ~r/\*+/, "%")
 
     case queryable(acc, key) do
       {:field, nil, _} -> acc
