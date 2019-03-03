@@ -6,5 +6,6 @@ defmodule Bar do
     field(:name, :string)
     field(:content, :string)
     belongs_to(:foo, Foo)
+    belongs_to(:user, User)
   end
 end
