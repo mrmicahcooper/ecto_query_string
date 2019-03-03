@@ -224,6 +224,12 @@ defmodule EctoQueryString do
           where: field(child, ^key) == ^value
         )
 
+      {:assoc, assoc_field, key, value} when is_list(value) ->
+        from(parent in acc,
+          join: child in assoc(parent, ^assoc_field),
+          where: field(child, ^key) in ^value
+        )
+
       _ ->
         acc
     end

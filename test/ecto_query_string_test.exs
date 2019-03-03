@@ -66,6 +66,21 @@ defmodule EctoQueryStringTest do
     assert_queries_match(string_query, expected_query)
   end
 
+  test("JOINS t2 ON t1.foreign_key = t1.primary_key WHERE t2.key IN value") do
+    querystring = "bars.name=cool,name"
+    query = from(f in Foo)
+    string_query = query(query, querystring)
+
+    expected_query =
+      from(
+        foo in Foo,
+        join: bars in assoc(foo, :bars),
+        where: bars.name in ^~w[cool name]
+      )
+
+    assert_queries_match(string_query, expected_query)
+  end
+
   test "WHERE Key != value", %{query: query} do
     querystring = "!username=mrmicahcooper"
     string_query = query(query, querystring)
