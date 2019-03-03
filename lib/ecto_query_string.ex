@@ -16,18 +16,23 @@ defmodule EctoQueryString do
     query(query, params)
   end
 
-  def queryable(query, field) do
+  def queryable(query, field, value \\ nil) do
+    value =
+      if value do
+        String.split(value, ",") |> Enum.map(&String.trim/1)
+      end
+
     schema = Reflection.source_schema(query)
 
     case String.split(field, ".", trim: true) do
       [field] ->
-        {:field, Reflection.field(schema, field)}
+        {:field, Reflection.field(schema, field), value}
 
       [assoc, field] ->
         if assoc_schema = Reflection.assoc_schema(schema, assoc) do
           assoc = String.to_atom(assoc)
           field = Reflection.field(assoc_schema, field)
-          {:assoc, assoc, field}
+          {:assoc, assoc, field, value}
         end
 
       _ ->
@@ -51,8 +56,7 @@ defmodule EctoQueryString do
   def orderable(query, fields_string) do
     fields =
       fields_string
-      |> String.split(",")
-      |> Enum.map(&String.trim/1)
+      |> String.split(",", trim: true)
       |> Enum.map(&order_field/1)
 
     schema_fields =
@@ -80,43 +84,43 @@ defmodule EctoQueryString do
   defp dynamic_segment({"offset", value}, acc), do: from(acc, offset: ^value)
 
   defp dynamic_segment({"greater:" <> key, value}, acc) do
-    if {:field, new_key} = queryable(acc, key) do
-      from(query in acc, where: field(query, ^new_key) > ^value)
-    else
-      acc
+    case queryable(acc, key) do
+      {:field, nil, _} -> acc
+      {:field, key, _} -> from(query in acc, where: field(query, ^key) > ^value)
     end
   end
 
   defp dynamic_segment({"less:" <> key, value}, acc) do
-    if {:field, new_key} = queryable(acc, key) do
-      from(query in acc, where: field(query, ^new_key) < ^value)
-    else
-      acc
+    case queryable(acc, key) do
+      {:field, nil, _} -> acc
+      {:field, key, _} -> from(query in acc, where: field(query, ^key) < ^value)
     end
   end
 
   defp dynamic_segment({"range:" <> key, value}, acc) do
-    if {:field, new_key} = queryable(acc, key) do
-      case String.split(value, ":") do
-        [".", "."] ->
-          acc
+    case queryable(acc, key) do
+      {:field, nil, _} ->
+        acc
 
-        [".", max] ->
-          from(query in acc, where: field(query, ^new_key) < ^max)
+      {:field, key, _} ->
+        case String.split(value, ":", trim: true) do
+          [".", "."] ->
+            acc
 
-        [min, "."] ->
-          from(query in acc, where: field(query, ^new_key) > ^min)
+          [".", max] ->
+            from(query in acc, where: field(query, ^key) < ^max)
 
-        [min, max] ->
-          from(query in acc,
-            where: field(query, ^new_key) > ^min and field(query, ^new_key) < ^max
-          )
+          [min, "."] ->
+            from(query in acc, where: field(query, ^key) > ^min)
 
-        :else ->
-          acc
-      end
-    else
-      acc
+          [min, max] ->
+            from(query in acc,
+              where: field(query, ^key) > ^min and field(query, ^key) < ^max
+            )
+
+          :else ->
+            acc
+        end
     end
   end
 
@@ -127,41 +131,34 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"ilike:" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
-    {:field, new_key} = queryable(acc, key)
-    from(query in acc, where: ilike(field(query, ^new_key), ^value))
+
+    case queryable(acc, key) do
+      {:field, nil, _} -> acc
+      {:field, key, _} -> from(query in acc, where: ilike(field(query, ^key), ^value))
+    end
   end
 
   defp dynamic_segment({"like:" <> key, value}, acc) do
     value = String.replace(value, "*", "%")
-    {:field, key} = queryable(acc, key)
 
-    if key do
-      from(query in acc, where: like(field(query, ^key), ^value))
-    else
-      acc
+    case queryable(acc, key) do
+      {:field, nil, _} -> acc
+      {:field, key, _} -> from(query in acc, where: like(field(query, ^key), ^value))
     end
   end
 
   defp dynamic_segment({"!or:" <> key, value}, acc) do
-    value = String.split(value, ",")
-
-    new_key =
-      case queryable(acc, key) do
-        {:field, new_key} -> new_key
-        _ -> nil
-      end
-
-    case {new_key, value} do
-      {nil, _} ->
+    case queryable(acc, key, value) do
+      {:field, nil, _} ->
         acc
 
-      {_, nil} ->
+      {_, _, nil} ->
         acc
 
-      {key, [value]} ->
+      {:field, key, [value]} ->
         from(query in acc, or_where: field(query, ^key) != ^value)
 
-      {key, value} when is_list(value) ->
+      {:field, key, value} when is_list(value) ->
         from(query in acc, or_where: field(query, ^key) not in ^value)
 
       _ ->
@@ -170,25 +167,17 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"!" <> key, value}, acc) do
-    value = String.split(value, ",")
-
-    new_key =
-      case queryable(acc, key) do
-        {:field, new_key} -> new_key
-        _ -> nil
-      end
-
-    case {new_key, value} do
-      {nil, _} ->
+    case queryable(acc, key, value) do
+      {:field, nil, _} ->
         acc
 
-      {_, nil} ->
+      {_, _, nil} ->
         acc
 
-      {key, [value]} ->
+      {:field, key, [value]} ->
         from(query in acc, where: field(query, ^key) != ^value)
 
-      {key, value} when is_list(value) ->
+      {:field, key, value} when is_list(value) ->
         from(query in acc, where: field(query, ^key) not in ^value)
 
       _ ->
@@ -197,25 +186,17 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"or:" <> key, value}, acc) do
-    value = String.split(value, ",")
-
-    new_key =
-      case queryable(acc, key) do
-        {:field, new_key} -> new_key
-        _ -> nil
-      end
-
-    case {new_key, value} do
-      {nil, _} ->
+    case queryable(acc, key, value) do
+      {:field, nil, _} ->
         acc
 
-      {_, nil} ->
+      {_, _, nil} ->
         acc
 
-      {key, [value]} ->
+      {:field, key, [value]} ->
         from(query in acc, or_where: field(query, ^key) == ^value)
 
-      {key, value} when is_list(value) ->
+      {:field, key, value} when is_list(value) ->
         from(query in acc, or_where: field(query, ^key) in ^value)
 
       _ ->
@@ -224,24 +205,20 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({key, value}, acc) do
-    value = String.split(value, ",", trim: true)
-
-    queryable = queryable(acc, key)
-
-    case {queryable, value} do
-      {{:field, nil}, _} ->
+    case queryable(acc, key, value) do
+      {:field, nil, _} ->
         acc
 
-      {_, nil} ->
+      {_, _, nil} ->
         acc
 
-      {{:field, key}, [value]} ->
+      {:field, key, [value]} ->
         from(query in acc, where: field(query, ^key) == ^value)
 
-      {{:field, key}, value} when is_list(value) ->
+      {:field, key, value} when is_list(value) ->
         from(query in acc, where: field(query, ^key) in ^value)
 
-      {{:assoc, assoc_field, key}, [value]} ->
+      {:assoc, assoc_field, key, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) == ^value

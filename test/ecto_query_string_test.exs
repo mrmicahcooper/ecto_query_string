@@ -6,10 +6,11 @@ defmodule EctoQueryStringTest do
 
   test ".queryable returns the field if its in the query's schema" do
     query = from(f in Foo)
-    assert queryable(query, "title") == {:field, :title}
-    assert queryable(query, "description") == {:field, :description}
-    assert queryable(query, "bar") == {:field, nil}
-    assert queryable(query, "bars.name") == {:assoc, :bars, :name}
+    assert queryable(query, "title") == {:field, :title, nil}
+    assert queryable(query, "description") == {:field, :description, nil}
+    assert queryable(query, "bar") == {:field, nil, nil}
+    assert queryable(query, "bars.name") == {:assoc, :bars, :name, nil}
+    assert queryable(query, "bars.name", "one, two") == {:assoc, :bars, :name, ["one", "two"]}
   end
 
   test ".selectable returns the existing fields in the same order" do
