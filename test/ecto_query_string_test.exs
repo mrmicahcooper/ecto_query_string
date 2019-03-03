@@ -198,29 +198,15 @@ defmodule EctoQueryStringTest do
     assert_queries_match(string_query, expected_query)
   end
 
-  test "ORDER_BY values ASC", %{query: query} do
-    querystring = "ascend=username,email"
-    string_query = query(query, querystring)
-    expected_query = from(user in User, order_by: ^[asc: :username, asc: :email])
-    assert_queries_match(string_query, expected_query)
-  end
-
-  test "ORDER_BY values DESC", %{query: query} do
-    querystring = "descend=username"
-    string_query = query(query, querystring)
-    expected_query = from(user in User, order_by: ^[desc: :username])
-    assert_queries_match(string_query, expected_query)
-  end
-
-  test "ORDER_BY values with sort", %{query: query} do
-    querystring = "sort=username,-email"
+  test "ORDER_BY values with order", %{query: query} do
+    querystring = "order=username,-email"
     string_query = query(query, querystring)
     expected_query = from(user in User, order_by: ^[asc: :username, desc: :email])
     assert_queries_match(string_query, expected_query)
   end
 
   test "ORDER_BY values DESC with sort", %{query: query} do
-    querystring = "sort=-username"
+    querystring = "order=-username"
     string_query = query(query, querystring)
     expected_query = from(user in User, order_by: ^[desc: :username])
     assert_queries_match(string_query, expected_query)

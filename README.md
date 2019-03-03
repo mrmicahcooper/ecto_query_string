@@ -30,9 +30,7 @@ Query String        | Ecto Query
 `between=40:99`     | `offset: 40, limit: 99`
 `select=foo,bar`    | `select([:foo, :bar])`
 `fields=foo,bar`    | `select([:foo, :bar])`
-`ascend=foo,bar`    | `order_by([:foo, :bar])`
-`descend=foo,bar`   | `order_by([desc: :foo, desc: :bar])`
-`sort=foo,-bar,baz` | `order_by([asc: :foo, desc: :bar, asc: :baz])`
+`order=foo,-bar,baz`| `order_by([asc: :foo, desc: :bar, asc: :baz])`
 
 ## Nested ecto queries
 
@@ -41,5 +39,4 @@ Query String        | Ecto Query
 ```
 |> join(:left, [x], children in assoc(x, :bars)
 |> where(children.baz == ^"buz"))
-
 ```

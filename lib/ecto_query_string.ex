@@ -120,21 +120,8 @@ defmodule EctoQueryString do
     end
   end
 
-  defp dynamic_segment({"sort", values}, acc) do
+  defp dynamic_segment({"order", values}, acc) do
     order_values = orderable(acc, values)
-    from(acc, order_by: ^order_values)
-  end
-
-  defp dynamic_segment({"ascend", values}, acc) do
-    order_values = selectable(acc, values)
-    from(acc, order_by: ^order_values)
-  end
-
-  defp dynamic_segment({"descend", values}, acc) do
-    order_values =
-      selectable(acc, values)
-      |> Enum.map(fn value -> {:desc, value} end)
-
     from(acc, order_by: ^order_values)
   end
 
