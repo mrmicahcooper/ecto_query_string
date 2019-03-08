@@ -133,8 +133,20 @@ defmodule EctoQueryString do
     value = String.replace(value, ~r/\*+/, "%")
 
     case queryable(acc, key) do
-      {:field, nil, _} -> acc
-      {:field, key, _} -> from(query in acc, where: ilike(field(query, ^key), ^value))
+      {:field, nil, _} ->
+        acc
+
+      {:field, key, _} ->
+        from(query in acc, where: ilike(field(query, ^key), ^value))
+
+      {:assoc, assoc_field, key, _} ->
+        from(parent in acc,
+          join: child in assoc(parent, ^assoc_field),
+          where: ilike(field(child, ^key), ^value)
+        )
+
+      _ ->
+        acc
     end
   end
 
