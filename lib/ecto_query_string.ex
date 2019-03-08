@@ -145,6 +145,36 @@ defmodule EctoQueryString do
           :else ->
             acc
         end
+
+      {:assoc, assoc_field, key, _} ->
+        case String.split(value, ":", trim: true) do
+          [".", "."] ->
+            acc
+
+          [".", max] ->
+            from(parent in acc,
+              join: child in assoc(parent, ^assoc_field),
+              where: field(child, ^key) < ^max
+            )
+
+          [min, "."] ->
+            from(parent in acc,
+              join: child in assoc(parent, ^assoc_field),
+              where: field(child, ^key) > ^min
+            )
+
+          [min, max] ->
+            from(parent in acc,
+              join: child in assoc(parent, ^assoc_field),
+              where: field(child, ^key) > ^min and field(child, ^key) < ^max
+            )
+
+          :else ->
+            acc
+        end
+
+      _ ->
+        acc
     end
   end
 
