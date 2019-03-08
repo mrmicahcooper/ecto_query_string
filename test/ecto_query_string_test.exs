@@ -4,6 +4,11 @@ defmodule EctoQueryStringTest do
   import EctoQueryString
   import Ecto.Query
 
+  setup do
+    query = from(user in User)
+    {:ok, %{query: query}}
+  end
+
   test ".queryable returns the field if its in the query's schema" do
     query = from(f in Foo)
     assert queryable(query, "title") == {:field, :title, nil}
@@ -16,11 +21,6 @@ defmodule EctoQueryStringTest do
   test ".selectable returns the existing fields in the same order" do
     query = from(f in Foo)
     assert selectable(query, "title,foo,bar,description") == ~w[title foo description]a
-  end
-
-  setup do
-    query = from(user in User)
-    {:ok, %{query: query}}
   end
 
   test "all", %{query: query} do
