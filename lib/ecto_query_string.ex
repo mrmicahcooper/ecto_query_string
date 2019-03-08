@@ -104,8 +104,20 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"less:" <> key, value}, acc) do
     case queryable(acc, key) do
-      {:field, nil, _} -> acc
-      {:field, key, _} -> from(query in acc, where: field(query, ^key) < ^value)
+      {:field, nil, _} ->
+        acc
+
+      {:field, key, _} ->
+        from(query in acc, where: field(query, ^key) < ^value)
+
+      {:assoc, assoc_field, key, _} ->
+        from(parent in acc,
+          join: child in assoc(parent, ^assoc_field),
+          where: field(child, ^key) < ^value
+        )
+
+      _ ->
+        acc
     end
   end
 
