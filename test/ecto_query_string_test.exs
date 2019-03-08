@@ -18,10 +18,10 @@ defmodule EctoQueryStringTest do
     assert queryable(query, "bars.name", "one, two") == {:assoc, :bars, :name, ["one", "two"]}
   end
 
-  test ".selectable returns the existing fields in the same order" do
-    query = from(f in Foo)
-    assert selectable(query, "title,foo,bar,description") == ~w[title foo description]a
-  end
+  # test ".selectable returns the existing fields in the same order" do
+  #   query = from(f in Foo)
+  #   assert selectable(query, "title,foo,bar,description") == ~w[title foo description]a
+  # end
 
   test "all", %{query: query} do
     querystring = ""
@@ -332,7 +332,9 @@ defmodule EctoQueryStringTest do
     assert_queries_match(string_query, expected_query)
   end
 
-  test "JOINS t2 ON t1.foreign_key = t1.primary_key OR WHERE key NOT IN value", %{query: query} do
+  test "JOINS t2 ON t1.foreign_key = t1.primary_key OR WHERE t2.key NOT IN t2.value", %{
+    query: query
+  } do
     querystring = "!or:bars.name=foo,bar"
     string_query = query(query, querystring)
 
@@ -349,6 +351,19 @@ defmodule EctoQueryStringTest do
     querystring = "or:email=a@b.co,c@d.co"
     string_query = query(query, querystring)
     expected_query = from(user in User, or_where: user.email in ^["a@b.co", "c@d.co"])
+    assert_queries_match(string_query, expected_query)
+  end
+
+  test "JOINS t2 ON t1.foreign_key = t1.primary_key SELECT t2.value", %{query: query} do
+    querystring = "select=username,bars.name,bars.content"
+    string_query = query(query, querystring)
+
+    expected_query =
+      from(user in User,
+        join: bars in assoc(user, :bars),
+        select: [:username, {:bars, :name}, {:bars, :content}]
+      )
+
     assert_queries_match(string_query, expected_query)
   end
 

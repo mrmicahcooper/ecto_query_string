@@ -144,20 +144,6 @@ defmodule EctoQueryString do
   end
 
   @doc false
-  def selectable(query, fields_string) do
-    fields = fields_string |> String.split(",", trim: true)
-
-    schema_fields =
-      query
-      |> Reflection.source_schema()
-      |> Reflection.schema_fields()
-
-    for field <- fields, field in schema_fields do
-      String.to_atom(field)
-    end
-  end
-
-  @doc false
   def orderable(query, fields_string) do
     fields =
       fields_string
@@ -178,7 +164,44 @@ defmodule EctoQueryString do
   defp order_field(field), do: {:asc, field}
 
   defp dynamic_segment({"select", value}, acc) do
-    from(acc, select: ^selectable(acc, value))
+    {_, select_segment} =
+      value
+      |> String.split(",", trim: true)
+      |> Enum.map(&String.split(&1, ".", trim: true))
+      |> Enum.reduce({acc, []}, &selectable/2)
+
+
+    join_fields = for {key, _} <- select_segment, uniq: true, do: key
+
+    acc = Enum.reduce(join_fields, acc, fn(assoc_field, query) ->
+      from(parent in query,
+           join: child in assoc(parent, ^assoc_field))
+    end)
+
+    from(acc, select: ^select_segment)
+  end
+
+  def selectable([field], {query, acc}) do
+    case Reflection.source_schema(query) |> Reflection.field(field) do
+      nil ->
+        {query, acc}
+
+      selection_field ->
+        {query, acc ++ [selection_field]}
+    end
+  end
+
+  def selectable([assoc, field], {query, acc}) do
+    schema = Reflection.source_schema(query)
+
+    case Reflection.assoc_schema(schema, assoc) |> Reflection.field(field) do
+      nil ->
+        {query, acc}
+
+      assoc_selection_field ->
+        assoc_field = String.to_atom(assoc)
+        {query, acc ++ [{assoc_field, assoc_selection_field}]}
+    end
   end
 
   defp dynamic_segment({"fields", value}, acc) do
