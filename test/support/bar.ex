@@ -4,6 +4,7 @@ defmodule Bar do
   schema "bars" do
     field(:bar, :integer)
     field(:name, :string)
+    field(:age, :integer)
     field(:content, :string)
     belongs_to(:foo, Foo)
     belongs_to(:user, User)

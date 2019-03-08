@@ -167,6 +167,20 @@ defmodule EctoQueryStringTest do
     assert_queries_match(string_query, expected_query)
   end
 
+  test "JOINS t2 ON t1.foreign_key = t1.primary_key key > value", %{query: query} do
+    querystring = "greater:bars.age=30"
+    string_query = query(query, querystring)
+
+    expected_query =
+      from(
+        user in User,
+        join: bars in assoc(user, :bars),
+        where: bars.age > ^"30"
+      )
+
+    assert_queries_match(string_query, expected_query)
+  end
+
   test "WHERE key < value", %{query: query} do
     querystring = "less:age=100"
     string_query = query(query, querystring)
