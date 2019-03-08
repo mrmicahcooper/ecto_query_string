@@ -6,15 +6,12 @@ defmodule EctoQueryString.Reflection do
 
   @spec schema_fields(Ecto.Schema) :: list(:binary)
   def schema_fields(schema) do
-    schema.__schema__(:fields)
-    |> Enum.map(&to_string/1)
+    schema.__schema__(:fields) |> Enum.map(&to_string/1)
   end
 
   @spec has_field?(Ecto.Schema, :binary) :: :boolean
   def has_field?(schema, field_name) when is_binary(field_name) do
-    list = schema_fields(schema)
-
-    field_name in list
+    field_name in schema_fields(schema)
   end
 
   @spec field(Ecto.Schema, :binary) :: :atom
