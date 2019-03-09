@@ -18,7 +18,7 @@ end
 
 Say you have the following schemas:
 
-```
+```elixir
 defmodule Foo do
   use Ecto.Schema
 
@@ -42,13 +42,13 @@ end
 ```
 
 You can do things like this:
-```
+```elixir
 query = Ecto.Query.from(user in User)
 query_string =  "username=mrmicahcooper&greater:age=18&limit=10"
 EctoQueryString.query(query, query_string)
 ```
 And get:
-```
+```elixir
 Ecto.Query.from(u0 in User,
   where: u0.age > ^"18",
   where: u0.username == ^"mrmicahcooper",
@@ -58,7 +58,7 @@ Ecto.Query.from(u0 in User,
 
 Here is the full DSL
 
-```
+```elixir
 # Basic Queries
 "name=micah"                => where: foo.name = ^"micah"
 "name=micah,bob"            => where: foo.name in ^["micah", "bob"]
