@@ -70,28 +70,26 @@ defmodule EctoQueryString do
   "or:name=micah,bob"         => or_where: foo.name in ^["micah", "bob"]
   "!or:name=bar"              => or_where: foo.name != ^"bar"
   "!or:name=micah,bob"        => or_where: foo.name not in ^["bar", "baz"]
+  "select=foo,bar"            => select: [:foo, :bar]
+  "fields=foo,bar"            => select: [:foo, :bar]
   "limit=.:99"                => limit: 99
   "offset=40:."               => offset: 40
   "between=40:99"             => offset: 40, limit: 99
-  "select=foo,bar"            => select: [:foo, :bar]
-  "fields=foo,bar"            => select: [:foo, :bar]
   "order=foo,-bar,baz"        => order_by: [asc: :foo, desc: :bar, asc: :baz]
-
   #Incorporating Associated Tables
-
-  "bars.title=micah"          => join: bars in assoc(foo, :bars),where: bars.title = ^"micah"
+  "bars.title=micah"          => join: bars in assoc(foo, :bars), where: bars.title = ^"micah"
   "bars.title=micah,bob"      => join: bars in assoc(foo, :bars), where: bars.title in ^["micah", "bob"]
-  "!bars.title=micah"         => join: bars in assoc(foo, :bars), where(bars.title != ^"micah")
-  "!bars.title=micah,bob"     => join: bars in assoc(foo, :bars), where(bars.title not in ^["micah", "bob"])
+  "!bars.title=micah"         => join: bars in assoc(foo, :bars), where: bars.title != ^"micah")
+  "!bars.title=micah,bob"     => join: bars in assoc(foo, :bars), where: bars.title not in ^["micah", "bob"])
   "like:bars.title=micah*"    => join: bars in assoc(foo, :bars), where: like(bars.title, ^"bar%")
   "like:bars.title=*micah"    => join: bars in assoc(foo, :bars), where: like(bars.title, ^"%bar")
   "like:bars.title=*micah*"   => join: bars in assoc(foo, :bars), where: like(bars.title, ^"%bar%")
   "ilike:bars.title=micah*"   => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"micah%")
   "ilike:bars.title=*micah"   => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah")
   "ilike:bars.title=*micah* " => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah%")
-  "less:bars.likes=99"        => join: bars in assoc(foo, :bars), where(bars.likes < 99)
-  "greater:bars.likes=99"     => join: bars in assoc(foo, :bars), where(bars.likes > 99)
-  "range:bars.likes=40:99"    => join: bars in assoc(foo, :bars), where(bars.likes< 99 and bars.likes > 40)
+  "less:bars.likes=99"        => join: bars in assoc(foo, :bars), where: bars.likes < 99
+  "greater:bars.likes=99"     => join: bars in assoc(foo, :bars), where: bars.likes > 99
+  "range:bars.likes=40:99"    => join: bars in assoc(foo, :bars), where: bars.likes< 99 and bars.likes > 40
   "or:bars.title=micah"       => join: bars in assoc(foo, :bars), or_where: bars.title == ^"micah"
   "or:bars.title=micah,bob"   => join: bars in assoc(foo, :bars), or_where: bars.title in ^["micah", "bob"
   "!or:bars.title=micah"      => join: bars in assoc(foo, :bars), or_where: bars.title != ^"micah"
