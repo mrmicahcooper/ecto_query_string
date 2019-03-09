@@ -2,8 +2,7 @@ defmodule EctoQueryString do
   import Ecto.Query
 
   alias EctoQueryString.Reflection
-  # /"!@$#*()-_;:',.~[]"
-  #
+
   @moduledoc """
 
   Compose an `Ecto.Query` with a querystring
@@ -34,64 +33,74 @@ defmodule EctoQueryString do
   end
 
   ```
-  And you have a base query like this:
+
+  You can do things like this:
+  ```
+  query = Ecto.Query.from(user in User)
+  query_string =  "username=mrmicahcooper&greater:age=18&limit=10"
+  EctoQueryString.query(query, query_string)
+  ```
+  And get:
+  ```
+  Ecto.Query.from(u0 in User,
+    where: u0.age > ^"18",
+    where: u0.username == ^"mrmicahcooper",
+    limit: ^"10"
+  )
+  ```
+
+  Here is the full DSL
 
   ```
-  query = Ecto.Query.from(foo in Foo)
-  ```
-
-  You can call
-  ```elixir
-  EctoQueryString.query(query, "name=foo&sort=-age,inserted-at")
-  ```
-
-  Where the second argument is a querystrying using the following DSL:
-
-  ```elixir
+  # Basic Queries
   "name=micah"                => where: foo.name = ^"micah"
-  "bars.title=micah"          => join: bars in assoc(foo, :bars),where: bars.title = ^"micah"
   "name=micah,bob"            => where: foo.name in ^["micah", "bob"]
-  "bars.title=micah,bob"      => join: bars in assoc(foo, :bars), where: bars.title in ^["micah", "bob"]
   "!name=micah"               => where: foo.name != ^"micah"
-  "!bars.title=micah"         => join: bars in assoc(foo, :bars), where(bars.title != ^"micah")
   "!name=micah,bob"           => where: foo.name not in ^["micah", "bob"]
-  "!bars.title=micah,bob"     => join: bars in assoc(foo, :bars), where(bars.title not in ^["micah", "bob"])
   "like:foo=bar*"             => where: like(x.foo, ^"bar%")
-  "like:bars.title=micah*"    => join: bars in assoc(foo, :bars), where: like(bars.title, ^"bar%")
   "like:foo=*bar"             => where: like(x.foo, ^"%bar")
-  "like:bars.title=*micah"    => join: bars in assoc(foo, :bars), where: like(bars.title, ^"%bar")
   "like:name=*micah*"         => where: like(foo.name, ^"%micah%")
-  "like:bars.title=*micah*"   => join: bars in assoc(foo, :bars), where: like(bars.title, ^"%bar%")
   "ilike:name=micah*"         => where: ilike(foo.name, ^"micah%")
-  "ilike:bars.title=micah*"   => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"micah%")
   "ilike:name=*micah"         => where: ilike(foo.name, ^"%micah")
-  "ilike:bars.title=*micah"   => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah")
   "ilike:foo=*bar*"           => where: ilike(x.foo, ^"%bar%")
-  "ilike:bars.title=*micah* " => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah%")
   "less:age=99"               => where: foo.age < 99
-  "less:bars.likes=99"        => join: bars in assoc(foo, :bars), where(bars.likes < 99)
-  "greater:age=40"            => where:foo.age > 40
-  "greater:bars.likes=99"     => join: bars in assoc(foo, :bars), where(bars.likes > 99)
+  "greater:age=40"            => where: foo.age > 40
   "range:age=40:99"           => where: foo.age < 99 and foo.age > 40
-  "range:bars.likes=40:99"    => join: bars in assoc(foo, :bars), where(bars.likes< 99 and bars.likes > 40)
   "or:name=micah"             => or_where: foo.name = ^"micah"
-  "or:bars.title=micah"       => join: bars in assoc(foo, :bars), or_where: bars.title == ^"micah"
   "or:name=micah,bob"         => or_where: foo.name in ^["micah", "bob"]
-  "or:bars.title=micah,bob"   => join: bars in assoc(foo, :bars), or_where: bars.title in ^["micah", "bob"
   "!or:name=bar"              => or_where: foo.name != ^"bar"
-  "!or:bars.title=micah"      => join: bars in assoc(foo, :bars), or_where: bars.title != ^"micah"
   "!or:name=micah,bob"        => or_where: foo.name not in ^["bar", "baz"]
-  "!or:bars.title=micah,bob"  => join: bars in assoc(foo, :bars), or_where: bars.title not in ^["micah", "bob"
   "limit=.:99"                => limit: 99
   "offset=40:."               => offset: 40
   "between=40:99"             => offset: 40, limit: 99
   "select=foo,bar"            => select: [:foo, :bar]
   "fields=foo,bar"            => select: [:foo, :bar]
   "order=foo,-bar,baz"        => order_by: [asc: :foo, desc: :bar, asc: :baz]
+
+  #Incorporating Associated Tables
+
+  "bars.title=micah"          => join: bars in assoc(foo, :bars),where: bars.title = ^"micah"
+  "bars.title=micah,bob"      => join: bars in assoc(foo, :bars), where: bars.title in ^["micah", "bob"]
+  "!bars.title=micah"         => join: bars in assoc(foo, :bars), where(bars.title != ^"micah")
+  "!bars.title=micah,bob"     => join: bars in assoc(foo, :bars), where(bars.title not in ^["micah", "bob"])
+  "like:bars.title=micah*"    => join: bars in assoc(foo, :bars), where: like(bars.title, ^"bar%")
+  "like:bars.title=*micah"    => join: bars in assoc(foo, :bars), where: like(bars.title, ^"%bar")
+  "like:bars.title=*micah*"   => join: bars in assoc(foo, :bars), where: like(bars.title, ^"%bar%")
+  "ilike:bars.title=micah*"   => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"micah%")
+  "ilike:bars.title=*micah"   => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah")
+  "ilike:bars.title=*micah* " => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah%")
+  "less:bars.likes=99"        => join: bars in assoc(foo, :bars), where(bars.likes < 99)
+  "greater:bars.likes=99"     => join: bars in assoc(foo, :bars), where(bars.likes > 99)
+  "range:bars.likes=40:99"    => join: bars in assoc(foo, :bars), where(bars.likes< 99 and bars.likes > 40)
+  "or:bars.title=micah"       => join: bars in assoc(foo, :bars), or_where: bars.title == ^"micah"
+  "or:bars.title=micah,bob"   => join: bars in assoc(foo, :bars), or_where: bars.title in ^["micah", "bob"
+  "!or:bars.title=micah"      => join: bars in assoc(foo, :bars), or_where: bars.title != ^"micah"
+  "!or:bars.title=micah,bob"  => join: bars in assoc(foo, :bars), or_where: bars.title not in ^["micah", "bob"
   ```
   """
 
-  @spec query(base_query :: Ecto.Query, query_string :: :binary) :: Ecto.Query
+  @spec query(Ecto.Query, binary) :: Ecto.Query
+  @spec query(Ecto.Query, map) :: Ecto.Query
   @doc """
   Uses a querystring or a map of params to extend an `Ecto.Query`
 
@@ -102,7 +111,6 @@ defmodule EctoQueryString do
   def query(query, ""), do: query(query, %{})
   def query(query, nil), do: query(query, %{})
 
-  @spec query(base_query :: Ecto.Query, params :: :map) :: Ecto.Query
   def query(query, %{} = params) do
     Enum.reduce(params, query, &dynamic_segment/2)
   end
@@ -112,6 +120,7 @@ defmodule EctoQueryString do
     query(query, params)
   end
 
+  @doc false
   def queryable(query, field, value \\ nil) do
     value =
       if value do
@@ -136,6 +145,7 @@ defmodule EctoQueryString do
     end
   end
 
+  @doc false
   def selectable(query, fields_string) do
     fields = fields_string |> String.split(",", trim: true)
 
@@ -149,6 +159,7 @@ defmodule EctoQueryString do
     end
   end
 
+  @doc false
   def orderable(query, fields_string) do
     fields =
       fields_string
