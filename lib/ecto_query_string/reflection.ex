@@ -7,26 +7,43 @@ defmodule EctoQueryString.Reflection do
   """
 
   @spec source_schema(Ecto.Query) :: Ecto.Schema
+  @doc """
+  Find the source of an `Ecto.Query`
+  """
   def source_schema(query) do
     query.from.source |> elem(1)
   end
 
   @spec schema_fields(Ecto.Schema) :: list(:binary)
+  @doc """
+  Return all the fields of the passed in `Ecto.Schema`
+
+  The fields are returned as strings
+  """
   def schema_fields(schema) do
     schema.__schema__(:fields) |> Enum.map(&to_string/1)
   end
 
   @spec has_field?(Ecto.Schema, :binary) :: :boolean
+  @doc """
+  Check if an `Ecto.Schema` has the passed in field
+  """
   def has_field?(schema, field_name) when is_binary(field_name) do
     field_name in schema_fields(schema)
   end
 
-  @spec field(Ecto.Schema, :binary) :: :atom
+  @spec field(Ecto.Schema, :binary) :: :atom | nil
+  @doc """
+  Get the `:atom` representation of a field if it exists in the passed in `Ecto.Schema`
+  """
   def field(schema, field_name) when is_binary(field_name) do
     if has_field?(schema, field_name), do: String.to_atom(field_name)
   end
 
   @spec has_assoc?(Ecto.Schema, :binary) :: :boolean
+  @doc """
+  Check is an `Ecto.Schema` has the passed in association
+  """
   def has_assoc?(schema, assoc_name) when is_binary(assoc_name) do
     list =
       schema.__schema__(:associations)
@@ -36,6 +53,9 @@ defmodule EctoQueryString.Reflection do
   end
 
   @spec assoc_schema(Ecto.Schema, :binary) :: Ecto.Schema
+  @doc """
+  Return an associated schema
+  """
   def assoc_schema(schema, assoc_name) when is_binary(assoc_name) do
     if has_assoc?(schema, assoc_name) do
       assoc = String.to_atom(assoc_name)
