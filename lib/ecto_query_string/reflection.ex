@@ -1,4 +1,11 @@
 defmodule EctoQueryString.Reflection do
+  @moduledoc """
+  Provides some conveniences to work with Queries and Schemas
+
+  You can use this module to make sure the passed in fields are valid for
+  the Query /Schema
+  """
+
   @spec source_schema(Ecto.Query) :: Ecto.Schema
   def source_schema(query) do
     query.from.source |> elem(1)
