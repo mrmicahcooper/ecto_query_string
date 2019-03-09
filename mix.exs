@@ -39,7 +39,7 @@ defmodule EctoQueryString.MixProject do
     [
       maintainers: ["Micah Cooper"],
       licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/mrmicahcooper/ecto_jsonapi"}
+      links: %{"GitHub" => "https://github.com/mrmicahcooper/ecto_query_string"}
     ]
   end
 
