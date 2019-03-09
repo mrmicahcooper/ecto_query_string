@@ -7,6 +7,7 @@ defmodule EctoQueryString.MixProject do
       version: "0.1.0",
       description: "Easy querying with ecto and query string params",
       elixir: "~> 1.8",
+      name: "EctoQueryString",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       source_url: "http://github.com/mrmicahcooper/ecto_query_string",
