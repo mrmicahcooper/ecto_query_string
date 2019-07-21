@@ -163,24 +163,6 @@ defmodule EctoQueryString do
   defp order_field("-" <> field), do: {:desc, field}
   defp order_field(field), do: {:asc, field}
 
-  defp dynamic_segment({"select", value}, acc) do
-    {_, select_segment} =
-      value
-      |> String.split(",", trim: true)
-      |> Enum.map(&String.split(&1, ".", trim: true))
-      |> Enum.reduce({acc, []}, &selectable/2)
-
-
-    join_fields = for {key, _} <- select_segment, uniq: true, do: key
-
-    acc = Enum.reduce(join_fields, acc, fn(assoc_field, query) ->
-      from(parent in query,
-           join: child in assoc(parent, ^assoc_field))
-    end)
-
-    from(acc, select: ^select_segment)
-  end
-
   def selectable([field], {query, acc}) do
     case Reflection.source_schema(query) |> Reflection.field(field) do
       nil ->
@@ -202,6 +184,25 @@ defmodule EctoQueryString do
         assoc_field = String.to_atom(assoc)
         {query, acc ++ [{assoc_field, assoc_selection_field}]}
     end
+  end
+
+  defp dynamic_segment({"select", value}, acc) do
+    {_, select_segment} =
+      value
+      |> String.split(",", trim: true)
+      |> Enum.map(&String.split(&1, ".", trim: true))
+      |> Enum.reduce({acc, []}, &selectable/2)
+
+    join_fields = for {key, _} <- select_segment, uniq: true, do: key
+
+    acc =
+      Enum.reduce(join_fields, acc, fn assoc_field, query ->
+        from(parent in query,
+          join: child in assoc(parent, ^assoc_field)
+        )
+      end)
+
+    from(acc, select: ^select_segment)
   end
 
   defp dynamic_segment({"fields", value}, acc) do
