@@ -106,15 +106,15 @@ defmodule EctoQueryString do
   majority of your filtering, ordering, and basic selects.
 
   """
-  def query(query, ""), do: query(query, %{})
-  def query(query, nil), do: query(query, %{})
+  def query(query, ""), do: query(query, [])
+  def query(query, nil), do: query(query, [])
 
-  def query(query, %{} = params) do
+  def query(query, params) when is_list(params) do
     Enum.reduce(params, query, &dynamic_segment/2)
   end
 
   def query(query, querystring) when is_binary(querystring) do
-    params = URI.decode_query(querystring)
+    params = URI.query_decoder(querystring) |> Enum.to_list()
     query(query, params)
   end
 
