@@ -2,6 +2,7 @@ defmodule EctoQueryString do
   import Ecto.Query
 
   alias EctoQueryString.Reflection
+  import Logger, only: [debug: 1]
 
   @moduledoc """
 
@@ -109,13 +110,20 @@ defmodule EctoQueryString do
   def query(query, ""), do: query(query, [])
   def query(query, nil), do: query(query, [])
 
+  def query(query, params) when is_map(params) do
+    params = params |> Enum.into([])
+    query(query, params)
+  end
+
   def query(query, params) when is_list(params) do
     Enum.reduce(params, query, &dynamic_segment/2)
   end
 
   def query(query, querystring) when is_binary(querystring) do
     params = URI.query_decoder(querystring) |> Enum.to_list()
-    query(query, params)
+    query = query(query, params)
+    unless Mix.env() == :test, do: debug(inspect(query))
+    query
   end
 
   @doc false
