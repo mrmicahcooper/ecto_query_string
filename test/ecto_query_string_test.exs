@@ -18,11 +18,6 @@ defmodule EctoQueryStringTest do
     assert queryable(query, "bars.name", "one, two") == {:assoc, :bars, :name, ["one", "two"]}
   end
 
-  # test ".selectable returns the existing fields in the same order" do
-  #   query = from(f in Foo)
-  #   assert selectable(query, "title,foo,bar,description") == ~w[title foo description]a
-  # end
-
   test "all", %{query: query} do
     querystring = ""
     string_query = query(query, querystring)
