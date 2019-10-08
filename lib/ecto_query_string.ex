@@ -206,7 +206,8 @@ defmodule EctoQueryString do
     acc =
       Enum.reduce(join_fields, acc, fn assoc_field, query ->
         from(parent in query,
-          join: child in assoc(parent, ^assoc_field)
+          join: child in assoc(parent, ^assoc_field),
+          preload: [{^assoc_field, child}]
         )
       end)
 

@@ -361,7 +361,8 @@ defmodule EctoQueryStringTest do
     expected_query =
       from(user in User,
         join: bars in assoc(user, :bars),
-        select: [:username, {:bars, :name}, {:bars, :content}]
+        select: [:username, {:bars, :name}, {:bars, :content}],
+        preload: [bars: bars]
       )
 
     assert_queries_match(string_query, expected_query)
