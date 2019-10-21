@@ -13,7 +13,8 @@ defmodule EctoQueryString.MixProject do
       source_url: "http://github.com/mrmicahcooper/ecto_query_string",
       deps: deps(),
       package: package(),
-      docs: docs()
+      docs: docs(),
+      aliases: aliases()
     ]
   end
 
@@ -32,6 +33,12 @@ defmodule EctoQueryString.MixProject do
     [
       {:ecto, "~> 3.0"},
       {:ex_doc, "~> 0.19", only: :dev, runtime: false}
+    ]
+  end
+
+  defp aliases do
+    [
+      test: ["test --trace"]
     ]
   end
 
