@@ -98,8 +98,7 @@ defmodule EctoQueryString do
   ```
   """
 
-  @spec query(Ecto.Query, binary) :: Ecto.Query
-  @spec query(Ecto.Query, map) :: Ecto.Query
+  @spec query(Ecto.Query, binary() | map() | keyword() | nil) :: Ecto.Query
   @doc """
   Uses a querystring or a map of params to extend an `Ecto.Query`
 
