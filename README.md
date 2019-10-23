@@ -79,6 +79,7 @@ Here is the full DSL
 "!or:name=micah,bob"        => or_where: foo.name not in ^["bar", "baz"]
 "select=foo,bar"            => select: [:foo, :bar]
 "fields=foo,bar"            => select: [:foo, :bar]
+
 "limit=.:99"                => limit: 99
 "offset=40:."               => offset: 40
 "between=40:99"             => offset: 40, limit: 99
@@ -101,4 +102,5 @@ Here is the full DSL
 "or:bars.title=micah,bob"   => join: bars in assoc(foo, :bars), or_where: bars.title in ^["micah", "bob"
 "!or:bars.title=micah"      => join: bars in assoc(foo, :bars), or_where: bars.title != ^"micah"
 "!or:bars.title=micah,bob"  => join: bars in assoc(foo, :bars), or_where: bars.title not in ^["micah", "bob"
+"select=email,bars.title"   => join: bars in assoc(foo, :bars), select: [{:bars, :name}, :email], preload: [:bars]
   ```
