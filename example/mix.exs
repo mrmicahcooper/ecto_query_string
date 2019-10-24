@@ -25,6 +25,7 @@ defmodule Example.MixProject do
       {:ecto, "~> 3.2"},
       {:ecto_sql, "~> 3.2"},
       {:ecto_query_string, path: "../"},
+      {:jason, "~> 1.1"},
       {:postgrex, ">= 0.0.0"}
     ]
   end
