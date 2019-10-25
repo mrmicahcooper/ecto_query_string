@@ -6,7 +6,7 @@ defmodule EctoQueryString.ReflectionTest do
 
   describe "schema_fields/1" do
     test "return string representations of a schema's fields" do
-      assert Reflection.schema_fields(Foo) == ~w[id foo title description]
+      assert Reflection.schema_fields(Foo) == ~w[id foo title description user_id]
     end
   end
 
@@ -43,6 +43,10 @@ defmodule EctoQueryString.ReflectionTest do
   describe "assoc_schema/2" do
     test "returns the associated schema if present" do
       assert Reflection.assoc_schema(Foo, "bars") == Bar
+    end
+
+    test "returns the associated schema from a `through` if present" do
+      assert Reflection.assoc_schema(User, "foobars") == Bar
     end
 
     test "returns nil associated schema if absent" do

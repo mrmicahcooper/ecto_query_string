@@ -350,16 +350,17 @@ defmodule EctoQueryStringTest do
   end
 
   test "JOINS t2 ON t1.foreign_key = t1.primary_key SELECT t2.value", %{query: query} do
-    querystring = "select=id,username,email,bars.name,bars.content,foos.title"
+    querystring = "select=id,username,email,bars.name,bars.content,foos.title,foobars.name"
 
     string_query = query(query, querystring)
 
     expected_query =
       from(user in User,
         join: bars in assoc(user, :bars),
+        join: foobars in assoc(user, :foobars),
         join: foos in assoc(user, :foos),
-        select: [{:bars, [:name, :content]}, {:foos, [:title]}, :id, :username, :email],
-        preload: [bars: bars, foos: foos]
+        select: [{:bars, [:name, :content]}, {:foobars, [:name]}, {:foos, [:title]}, :id, :username, :email],
+        preload: [bars: bars, foos: foos, foobars: foobars]
       )
 
     assert_queries_match(string_query, expected_query)

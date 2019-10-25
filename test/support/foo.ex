@@ -6,5 +6,6 @@ defmodule Foo do
     field(:title, :string)
     field(:description, :string)
     has_many(:bars, Bar)
+    belongs_to(:user, User)
   end
 end

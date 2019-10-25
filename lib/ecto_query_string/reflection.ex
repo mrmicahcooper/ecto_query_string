@@ -42,7 +42,7 @@ defmodule EctoQueryString.Reflection do
 
   @spec has_assoc?(Ecto.Schema, :binary) :: :boolean
   @doc """
-  Check is an `Ecto.Schema` has the passed in association
+  Check if an `Ecto.Schema` has the passed in association
   """
   def has_assoc?(schema, assoc_name) when is_binary(assoc_name) do
     list =
@@ -59,7 +59,26 @@ defmodule EctoQueryString.Reflection do
   def assoc_schema(schema, assoc_name) when is_binary(assoc_name) do
     if has_assoc?(schema, assoc_name) do
       assoc = String.to_atom(assoc_name)
-      schema.__schema__(:association, assoc).related
+
+      case schema.__schema__(:association, assoc) do
+        %{related: related} ->
+          related
+
+        %{through: [through, child_assoc]} ->
+          through_schema = assoc_schema(schema, through)
+          assoc_schema(through_schema, child_assoc)
+      end
+    end
+  end
+
+  def assoc_schema(schema, assoc) when is_atom(assoc) do
+    case schema.__schema__(:association, assoc) do
+      %{related: related} ->
+        related
+
+      %{through: [through, child_assoc]} ->
+        through_schema = assoc_schema(schema, through)
+        assoc_schema(through_schema, child_assoc)
     end
   end
 end
