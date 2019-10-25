@@ -176,7 +176,7 @@ defmodule EctoQueryString do
         {query, acc}
 
       selection_field ->
-        {query, acc ++ [selection_field]}
+        {query, acc ++ [nil: selection_field]}
     end
   end
 
@@ -193,12 +193,18 @@ defmodule EctoQueryString do
     end
   end
 
+  defp select_into({nil, value}, acc), do: acc ++ value
+  defp select_into({key, value}, acc), do: acc ++ [{key, value}]
+
   defp dynamic_segment({"select", value}, acc) do
-    {_, select_segment} =
+    select_segment =
       value
       |> String.split(",", trim: true)
       |> Enum.map(&String.split(&1, ".", trim: true))
       |> Enum.reduce({acc, []}, &selectable/2)
+      |> elem(1)
+      |> Enum.group_by(fn {k, _} -> k end, fn {_, v} -> v end)
+      |> Enum.reduce([], &select_into/2)
 
     join_fields = for {key, _} <- select_segment, uniq: true, do: key
 
