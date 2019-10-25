@@ -103,3 +103,8 @@ Here is the full DSL
 "!or:bars.title=micah,bob"  => join: bars in assoc(foo, :bars), or_where: bars.title not in ^["micah", "bob"
 "select=email,bars.title"   => join: bars in assoc(foo, :bars), select: [{:bars, [:title]}, :email], preload: [:bars]
   ```
+
+
+## Caveats with using `select`
+
+In order to hydrate the schema, you _must always_ at least `select=id` from every schema. Even nested schemas would need at least `select=id,foos.id` 
