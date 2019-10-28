@@ -177,20 +177,27 @@ defmodule EctoQueryString do
         {query, acc}
 
       selection_field ->
-        {query, acc ++ [nil: selection_field]}
+        new_acc = update_in(acc[nil], &[selection_field | List.wrap(&1)])
+
+        {query, new_acc}
     end
   end
 
   def selectable([assoc, field], {query, acc}) do
-    schema = Reflection.source_schema(query)
+    field =
+      Reflection.source_schema(query)
+      |> Reflection.assoc_schema(assoc)
+      |> Reflection.field(field)
 
-    case Reflection.assoc_schema(schema, assoc) |> Reflection.field(field) do
+    case field do
       nil ->
         {query, acc}
 
       assoc_selection_field ->
-        assoc_field = String.to_atom(assoc)
-        {query, acc ++ [{assoc_field, assoc_selection_field}]}
+        field = String.to_atom(assoc)
+        new_acc = update_in(acc[field], &[assoc_selection_field | List.wrap(&1)])
+
+        {query, new_acc}
     end
   end
 
@@ -204,7 +211,6 @@ defmodule EctoQueryString do
       |> Enum.map(&String.split(&1, ".", trim: true))
       |> Enum.reduce({acc, []}, &selectable/2)
       |> elem(1)
-      |> Enum.group_by(fn {k, _} -> k end, fn {_, v} -> v end)
       |> Enum.reduce([], &select_into/2)
 
     join_fields = for {key, _} <- select_segment, uniq: true, do: key

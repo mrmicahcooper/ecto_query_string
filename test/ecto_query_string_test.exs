@@ -356,11 +356,18 @@ defmodule EctoQueryStringTest do
 
     expected_query =
       from(user in User,
-        join: bars in assoc(user, :bars),
         join: foobars in assoc(user, :foobars),
         join: foos in assoc(user, :foos),
-        select: [{:bars, [:name, :content]}, {:foobars, [:name]}, {:foos, [:title]}, :id, :username, :email],
-        preload: [bars: bars, foos: foos, foobars: foobars]
+        join: bars in assoc(user, :bars),
+        select: [
+          {:foobars, [:name]},
+          {:foos, [:title]},
+          {:bars, [:content, :name]},
+          :email,
+          :username,
+          :id
+        ],
+        preload: [foos: foos, bars: bars, foobars: foobars]
       )
 
     assert_queries_match(string_query, expected_query)
@@ -369,14 +376,14 @@ defmodule EctoQueryStringTest do
   test "SELECT values", %{query: query} do
     querystring = "select=username,email"
     string_query = query(query, querystring)
-    expected_query = from(user in User, select: ^[:username, :email])
+    expected_query = from(user in User, select: ^[:email, :username])
     assert_queries_match(string_query, expected_query)
   end
 
   test "SELECT values with 'fields'", %{query: query} do
     querystring = "fields=username,email"
     string_query = query(query, querystring)
-    expected_query = from(user in User, select: ^[:username, :email])
+    expected_query = from(user in User, select: ^[:email, :username])
     assert_queries_match(string_query, expected_query)
   end
 
