@@ -356,13 +356,13 @@ defmodule EctoQueryStringTest do
 
     expected_query =
       from(user in User,
-        join: foobars in assoc(user, :foobars),
-        join: foos in assoc(user, :foos),
         join: bars in assoc(user, :bars),
+        join: foos in assoc(user, :foos),
+        join: foobars in assoc(user, :foobars),
         select: [
-          {:foobars, [:name]},
-          {:foos, [:title]},
           {:bars, [:content, :name]},
+          {:foos, [:title]},
+          {:foobars, [:name]},
           :email,
           :username,
           :id

@@ -180,7 +180,7 @@ defmodule EctoQueryString do
   end
 
   defp select_into({nil, value}, acc), do: acc ++ value
-  defp select_into({key, value}, acc), do: acc ++ [{key, value}]
+  defp select_into({key, value}, acc), do: [{key, value} | acc]
 
   defp order_field("-" <> field), do: {:desc, field}
   defp order_field(field), do: {:asc, field}
