@@ -151,26 +151,6 @@ defmodule EctoQueryString do
     end
   end
 
-  @doc false
-  def orderable(query, fields_string) do
-    fields =
-      fields_string
-      |> String.split(",", trim: true)
-      |> Enum.map(&order_field/1)
-
-    schema_fields =
-      query
-      |> Reflection.source_schema()
-      |> Reflection.schema_fields()
-
-    for {order, field} <- fields, field in schema_fields do
-      {order, String.to_atom(field)}
-    end
-  end
-
-  defp order_field("-" <> field), do: {:desc, field}
-  defp order_field(field), do: {:asc, field}
-
   def selectable([field], {query, acc}) do
     case Reflection.source_schema(query) |> Reflection.field(field) do
       nil ->
@@ -178,7 +158,6 @@ defmodule EctoQueryString do
 
       selection_field ->
         new_acc = update_in(acc[nil], &[selection_field | List.wrap(&1)])
-
         {query, new_acc}
     end
   end
@@ -196,13 +175,27 @@ defmodule EctoQueryString do
       assoc_selection_field ->
         field = String.to_atom(assoc)
         new_acc = update_in(acc[field], &[assoc_selection_field | List.wrap(&1)])
-
         {query, new_acc}
     end
   end
 
   defp select_into({nil, value}, acc), do: acc ++ value
   defp select_into({key, value}, acc), do: acc ++ [{key, value}]
+
+  defp order_field("-" <> field), do: {:desc, field}
+  defp order_field(field), do: {:asc, field}
+
+  defp dynamic_segment({"order", values}, acc) do
+    fields = values |> String.split(",", trim: true) |> Enum.map(&order_field/1)
+    schema_fields = acc |> Reflection.source_schema() |> Reflection.schema_fields()
+
+    order_values =
+      for {order, field} <- fields, field in schema_fields do
+        {order, String.to_atom(field)}
+      end
+
+    from(acc, order_by: ^order_values)
+  end
 
   defp dynamic_segment({"select", value}, acc) do
     select_segment =
@@ -326,11 +319,6 @@ defmodule EctoQueryString do
       _ ->
         acc
     end
-  end
-
-  defp dynamic_segment({"order", values}, acc) do
-    order_values = orderable(acc, values)
-    from(acc, order_by: ^order_values)
   end
 
   defp dynamic_segment({"ilike:" <> key, value}, acc) do

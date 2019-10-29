@@ -105,6 +105,8 @@ Here is the full DSL
   ```
 
 
-## Caveats with using `select`
+## Caveats
 
-In order to hydrate the schema, you _must always_ at least `select=id` from every schema. Even nested schemas would need at least `select=id,foos.id` 
+When using `select` - In order to hydrate the schema, you _must always_ at least `select=id` from every schema. Even nested schemas would need at least `select=id,foos.id` 
+
+When using `order` - You cannot not (currently) order by nested fields. 
