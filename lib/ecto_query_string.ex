@@ -111,19 +111,19 @@ defmodule EctoQueryString do
   def query(query, nil), do: query(query, [])
 
   def query(query, params) when is_map(params) do
-    params = params |> Enum.into([])
+    params = params |> Keyword.new()
     query(query, params)
   end
 
   def query(query, params) when is_list(params) do
-    Enum.reduce(params, query, &dynamic_segment/2)
+    query = Enum.reduce(params, query, &dynamic_segment/2)
+    debug(inspect(query))
+    query
   end
 
   def query(query, querystring) when is_binary(querystring) do
     params = URI.query_decoder(querystring) |> Enum.to_list()
-    query = query(query, params)
-    unless Mix.env() == :test, do: debug(inspect(query))
-    query
+    query(query, params)
   end
 
   @doc false
