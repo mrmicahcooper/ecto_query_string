@@ -111,7 +111,7 @@ defmodule EctoQueryString do
   def query(query, nil), do: query(query, [])
 
   def query(query, params) when is_map(params) do
-    params = params |> Keyword.new()
+    params = params |> Enum.into([])
     query(query, params)
   end
 
