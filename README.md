@@ -42,12 +42,15 @@ end
 ```
 
 You can do things like this:
+
 ```elixir
 query = Ecto.Query.from(user in User)
 query_string =  "username=mrmicahcooper&greater:age=18&limit=10"
 EctoQueryString.query(query, query_string)
 ```
+
 And get:
+
 ```elixir
 Ecto.Query.from(u0 in User,
   where: u0.age > ^"18",
@@ -102,11 +105,10 @@ Here is the full DSL
 "!or:bars.title=micah"      => join: bars in assoc(foo, :bars), or_where: bars.title != ^"micah"
 "!or:bars.title=micah,bob"  => join: bars in assoc(foo, :bars), or_where: bars.title not in ^["micah", "bob"
 "select=email,bars.title"   => join: bars in assoc(foo, :bars), select: [{:bars, [:title]}, :email], preload: [:bars]
-  ```
-
+```
 
 ## Caveats
 
-When using `select` - In order to hydrate the schema, you _must always_ at least `select=id` from every schema. Even nested schemas would need at least `select=id,foos.id` 
+When using `select` - In order to hydrate the schema, you _must always_ at least `select=id` from every schema. Even nested schemas would need at least `select=id,foos.id`
 
-When using `order` - You cannot not (currently) order by nested fields. 
+When using `order` - You cannot not (currently) order by nested fields.
