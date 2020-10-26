@@ -81,4 +81,35 @@ defmodule EctoQueryString.Reflection do
         assoc_schema(through_schema, child_assoc)
     end
   end
+
+  @spec foreign_key(Ecto.Schema, :atom) :: :atom
+  @doc """
+  Return an the foreign key of a schema's association
+  """
+  def foreign_key(schema, assoc) when is_atom(assoc) do
+    case schema.__schema__(:association, assoc) do
+      %{related: _related, related_key: key} ->
+        key
+
+      %{through: [through, child_assoc]} ->
+        through_schema = assoc_schema(schema, through)
+        foreign_key(through_schema, child_assoc)
+    end
+  end
+
+  @spec primary_key(Ecto.Schema) :: :atom
+  @doc """
+  Return the primary key of a schema
+  """
+  def primary_key(schema) do
+    schema.__schema__(:primary_key) |> List.first()
+  end
+
+  @spec primary_keys(Ecto.Schema) :: :atom
+  @doc """
+  Return  all the primary keys of a schema
+  """
+  def primary_keys(schema) do
+    schema.__schema__(:primary_key)
+  end
 end

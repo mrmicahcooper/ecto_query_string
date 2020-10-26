@@ -61,4 +61,27 @@ defmodule EctoQueryString.ReflectionTest do
       assert Reflection.source_schema(query) == Foo
     end
   end
+
+  describe "primary_key/1" do
+    test "returns the primary_key for a schema" do
+      assert Reflection.primary_key(Foo) == :id
+    end
+  end
+
+  describe "primary_keys/1" do
+    test "returns the all primary_keys for a schema" do
+      assert Reflection.primary_keys(Foo) == [:id]
+    end
+  end
+
+  describe "foreign_key/2" do
+    test "returns the foreign key for relatonship" do
+      assert Reflection.foreign_key(Foo, :bars) == :foo_id
+    end
+
+    test "returns the foreign key for through relatonship" do
+      assert Reflection.foreign_key(User, :foobars) == :foo_id
+    end
+  end
+
 end

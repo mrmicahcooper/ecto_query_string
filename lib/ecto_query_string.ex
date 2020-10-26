@@ -8,14 +8,10 @@ defmodule EctoQueryString do
 
   Compose an `Ecto.Query` with a querystring
 
-  ## Usage
-
-  Say you have the following schemas:
+  ## Usage Say you have the following schemas:
 
   ```
-  defmodule Foo do
-    use Ecto.Schema
-
+  defmodule Foo do use Ecto.Schema
     schema "foos" do
       field(:name, :string)
       field(:age, :integer)
@@ -185,6 +181,14 @@ defmodule EctoQueryString do
   defp order_field("-" <> field), do: {:desc, field}
   defp order_field(field), do: {:asc, field}
 
+  defp select_foreign_key({assoc_field, attributes}, source_schema) do
+    foreign_key = Reflection.foreign_key(source_schema, assoc_field)
+
+    {assoc_field, [:id, foreign_key] ++ attributes}
+  end
+
+  defp select_foreign_key(field, _acc),  do: field
+
   defp dynamic_segment({"order", values}, acc) do
     fields = values |> String.split(",", trim: true) |> Enum.map(&order_field/1)
     schema_fields = acc |> Reflection.source_schema() |> Reflection.schema_fields()
@@ -198,6 +202,7 @@ defmodule EctoQueryString do
   end
 
   defp dynamic_segment({"select", value}, acc) do
+    source_schema = Reflection.source_schema(acc)
     select_segment =
       value
       |> String.split(",", trim: true)
@@ -205,8 +210,16 @@ defmodule EctoQueryString do
       |> Enum.reduce({acc, []}, &selectable/2)
       |> elem(1)
       |> Enum.reduce([], &select_into/2)
+      |> Enum.map(&select_foreign_key(&1, source_schema))
 
     join_fields = for {key, _} <- select_segment, uniq: true, do: key
+
+    select_fields = if join_fields != [] do
+      primary_keys = Reflection.primary_keys(source_schema)
+      select_segment ++ primary_keys
+    else
+      select_segment
+    end
 
     acc =
       Enum.reduce(join_fields, acc, fn assoc_field, query ->
@@ -216,7 +229,7 @@ defmodule EctoQueryString do
         )
       end)
 
-    from(acc, select: ^select_segment)
+    from(acc, select: ^select_fields)
   end
 
   defp dynamic_segment({"fields", value}, acc) do

@@ -350,7 +350,7 @@ defmodule EctoQueryStringTest do
   end
 
   test "JOINS t2 ON t1.foreign_key = t1.primary_key SELECT t2.value", %{query: query} do
-    querystring = "select=id,username,email,bars.name,bars.content,foos.title,foobars.name"
+    querystring = "select=username,email,bars.name,bars.content,foos.title,foobars.name"
 
     string_query = query(query, querystring)
 
@@ -360,9 +360,9 @@ defmodule EctoQueryStringTest do
         join: foos in assoc(user, :foos),
         join: foobars in assoc(user, :foobars),
         select: [
-          {:bars, [:content, :name]},
-          {:foos, [:title]},
-          {:foobars, [:name]},
+          {:bars, [:id, :user_id, :content, :name]},
+          {:foos, [:id, :user_id, :title]},
+          {:foobars, [:id, :foo_id, :name]},
           :email,
           :username,
           :id
