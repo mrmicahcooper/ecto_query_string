@@ -73,7 +73,8 @@ defmodule EctoQueryString do
   "offset=40:."               => offset: 40
   "between=40:99"             => offset: 40, limit: 99
   "order=foo,-bar,baz"        => order_by: [asc: :foo, desc: :bar, asc: :baz]
-  #Incorporating Associated Tables
+
+  # Incorporating Associated Tables
   "bars.title=micah"          => join: bars in assoc(foo, :bars), where: bars.title = ^"micah"
   "bars.title=micah,bob"      => join: bars in assoc(foo, :bars), where: bars.title in ^["micah", "bob"]
   "!bars.title=micah"         => join: bars in assoc(foo, :bars), where: bars.title != ^"micah")
@@ -92,6 +93,10 @@ defmodule EctoQueryString do
   "!or:bars.title=micah"      => join: bars in assoc(foo, :bars), or_where: bars.title != ^"micah"
   "!or:bars.title=micah,bob"  => join: bars in assoc(foo, :bars), or_where: bars.title not in ^["micah", "bob"
   "select=email,bars.title"   => join: bars in assoc(foo, :bars), select: [{:bars, [:title]}, :email], preload: [:bars]
+
+  # Maps and keyword lists are supported too
+  %{"ilike:foo" => "*bar*"}   => where: ilike(x.foo, ^"%bar%")
+  [name: "micah"]             => where: foo.name = ^"micah"
   ```
   """
 
