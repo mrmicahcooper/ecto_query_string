@@ -118,7 +118,10 @@ defmodule EctoQueryString do
   end
 
   def query(query, querystring) when is_binary(querystring) do
-    params = URI.query_decoder(querystring) |> Enum.to_list()
+    params = querystring
+             |> URI.decode()
+             |> URI.query_decoder()
+             |> Enum.to_list()
     query(query, params)
   end
 
