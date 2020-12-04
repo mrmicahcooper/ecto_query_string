@@ -47,6 +47,12 @@ You can do things like this:
 query = Ecto.Query.from(user in User)
 query_string =  "username=mrmicahcooper&greater:age=18&limit=10"
 EctoQueryString.query(query, query_string)
+
+query_params =  %{"username" => "mrmicahcooper", "greater:age" => "18", "limit" => "10"}
+EctoQueryString.query(query, query_params)
+
+keyword_list =  [username: "mrmicahcooper"]
+EctoQueryString.query(query, keyword_list)
 ```
 
 And get:
@@ -86,7 +92,8 @@ Here is the full DSL
 "offset=40:."               => offset: 40
 "between=40:99"             => offset: 40, limit: 99
 "order=foo,-bar,baz"        => order_by: [asc: :foo, desc: :bar, asc: :baz]
-#Incorporating Associated Tables
+
+# Incorporating Associated Tables
 "bars.title=micah"          => join: bars in assoc(foo, :bars), where: bars.title = ^"micah"
 "bars.title=micah,bob"      => join: bars in assoc(foo, :bars), where: bars.title in ^["micah", "bob"]
 "!bars.title=micah"         => join: bars in assoc(foo, :bars), where: bars.title != ^"micah")
@@ -105,6 +112,10 @@ Here is the full DSL
 "!or:bars.title=micah"      => join: bars in assoc(foo, :bars), or_where: bars.title != ^"micah"
 "!or:bars.title=micah,bob"  => join: bars in assoc(foo, :bars), or_where: bars.title not in ^["micah", "bob"
 "select=email,bars.title"   => join: bars in assoc(foo, :bars), select: [{:bars, [:title]}, :email], preload: [:bars]
+
+# Maps and keyword lists are supported too
+%{"ilike:foo" => "*bar*"}   => where: ilike(x.foo, ^"%bar%")
+[name: "micah"]             => where: foo.name = ^"micah"
 ```
 
 ## Caveats
