@@ -266,6 +266,25 @@ defmodule EctoQueryString do
     end
   end
 
+  defp dynamic_segment({"greaterequal:" <> key, value}, acc) do
+    case queryable(acc, key) do
+      {:field, nil, _} ->
+        acc
+
+      {:field, key, _} ->
+        from(query in acc, where: field(query, ^key) >= ^value)
+
+      {:assoc, assoc_field, key, _} ->
+        from(parent in acc,
+          join: child in assoc(parent, ^assoc_field),
+          where: field(child, ^key) >= ^value
+        )
+
+      _ ->
+        acc
+    end
+  end
+
   defp dynamic_segment({"less:" <> key, value}, acc) do
     case queryable(acc, key) do
       {:field, nil, _} ->
@@ -278,6 +297,25 @@ defmodule EctoQueryString do
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) < ^value
+        )
+
+      _ ->
+        acc
+    end
+  end
+
+  defp dynamic_segment({"lessequal:" <> key, value}, acc) do
+    case queryable(acc, key) do
+      {:field, nil, _} ->
+        acc
+
+      {:field, key, _} ->
+        from(query in acc, where: field(query, ^key) <= ^value)
+
+      {:assoc, assoc_field, key, _} ->
+        from(parent in acc,
+          join: child in assoc(parent, ^assoc_field),
+          where: field(child, ^key) <= ^value
         )
 
       _ ->

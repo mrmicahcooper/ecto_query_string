@@ -80,7 +80,9 @@ Here is the full DSL
 "ilike:name=*micah"         => where: ilike(foo.name, ^"%micah")
 "ilike:foo=*bar*"           => where: ilike(x.foo, ^"%bar%")
 "less:age=99"               => where: foo.age < 99
+"lessequal:age=99"          => where: foo.age <= 99
 "greater:age=40"            => where: foo.age > 40
+"greaterequal:age=40"       => where: foo.age >= 40
 "range:age=40:99"           => where: foo.age < 99 and foo.age > 40
 "or:name=micah"             => or_where: foo.name = ^"micah"
 "or:name=micah,bob"         => or_where: foo.name in ^["micah", "bob"]
@@ -105,7 +107,9 @@ Here is the full DSL
 "ilike:bars.title=*micah"   => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah")
 "ilike:bars.title=*micah* " => join: bars in assoc(foo, :bars), where: ilike(bars.title, ^"%micah%")
 "less:bars.likes=99"        => join: bars in assoc(foo, :bars), where: bars.likes < 99
+"lessequal:bars.likes=99"   => join: bars in assoc(foo, :bars), where: bars.likes <= 99
 "greater:bars.likes=99"     => join: bars in assoc(foo, :bars), where: bars.likes > 99
+"greaterequal:bars.likes=99"=> join: bars in assoc(foo, :bars), where: bars.likes >= 99
 "range:bars.likes=40:99"    => join: bars in assoc(foo, :bars), where: bars.likes< 99 and bars.likes > 40
 "or:bars.title=micah"       => join: bars in assoc(foo, :bars), or_where: bars.title == ^"micah"
 "or:bars.title=micah,bob"   => join: bars in assoc(foo, :bars), or_where: bars.title in ^["micah", "bob"
