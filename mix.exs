@@ -4,7 +4,7 @@ defmodule EctoQueryString.MixProject do
   def project do
     [
       app: :ecto_query_string,
-      version: "0.1.2",
+      version: "0.2.0",
       description: "Easy querying with ecto and query string params",
       elixir: ">= 1.9.1",
       name: "EctoQueryString",
