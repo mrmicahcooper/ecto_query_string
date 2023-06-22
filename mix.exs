@@ -32,13 +32,9 @@ defmodule EctoQueryString.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.0"},
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false}
-    ]
-  end
-
-  defp aliases do
-    [
-      test: ["test --trace"]
+      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:ecto_sql, "~> 3.10", only: [:dev, :test]},
+      {:postgrex, "~> 0.17", only: [:dev, :test]}
     ]
   end
 
