@@ -22,11 +22,11 @@ defmodule EctoQueryString.ReflectionTest do
 
   describe "field/2" do
     test "returns field if it exists in the schema" do
-      assert Reflection.field(Foo, "title") == :title
+      assert Reflection.field(Foo, "title") == {:title, :string}
     end
 
     test "returns nil if the field doesn't exist" do
-      assert Reflection.field(Foo, "noop") == nil
+      assert Reflection.field(Foo, "noop") == {nil, :no_field}
     end
   end
 

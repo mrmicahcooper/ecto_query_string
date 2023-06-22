@@ -13,8 +13,7 @@ defmodule EctoQueryString.MixProject do
       source_url: "http://github.com/mrmicahcooper/ecto_query_string",
       deps: deps(),
       package: package(),
-      docs: docs(),
-      aliases: aliases()
+      docs: docs()
     ]
   end
 

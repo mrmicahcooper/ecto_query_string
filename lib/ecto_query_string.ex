@@ -141,12 +141,13 @@ defmodule EctoQueryString do
 
     case String.split(field, ".", trim: true) do
       [field] ->
-        {:field, Reflection.field(schema, field), value}
+        {field, _type} = Reflection.field(schema, field)
+        {:field, field, value}
 
       [assoc, field] ->
         if assoc_schema = Reflection.assoc_schema(schema, assoc) do
           assoc = String.to_atom(assoc)
-          field = Reflection.field(assoc_schema, field)
+          {field, _type} = Reflection.field(assoc_schema, field)
           {:assoc, assoc, field, value}
         end
 
@@ -160,7 +161,7 @@ defmodule EctoQueryString do
       nil ->
         {query, acc}
 
-      selection_field ->
+      {selection_field, _type} ->
         new_acc = update_in(acc[nil], &[selection_field | List.wrap(&1)])
         {query, new_acc}
     end
@@ -176,7 +177,7 @@ defmodule EctoQueryString do
       nil ->
         {query, acc}
 
-      assoc_selection_field ->
+      {assoc_selection_field, _type} ->
         field = String.to_atom(assoc)
         new_acc = update_in(acc[field], &[assoc_selection_field | List.wrap(&1)])
         {query, new_acc}
@@ -424,25 +425,25 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"!or:" <> key, value}, acc) do
     case queryable(acc, key, value) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {_, _, nil} ->
+      {_, _, _type, nil} ->
         acc
 
-      {:field, key, [value]} ->
+      {:field, key, _type, [value]} ->
         from(query in acc, or_where: field(query, ^key) != ^value)
 
-      {:field, key, value} when is_list(value) ->
+      {:field, key, _type, value} when is_list(value) ->
         from(query in acc, or_where: field(query, ^key) not in ^value)
 
-      {:assoc, assoc_field, key, [value]} ->
+      {:assoc, assoc_field, key, _type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           or_where: field(child, ^key) != ^value
         )
 
-      {:assoc, assoc_field, key, value} when is_list(value) ->
+      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           or_where: field(child, ^key) not in ^value

@@ -37,7 +37,12 @@ defmodule EctoQueryString.Reflection do
   Get the `:atom` representation of a field if it exists in the passed in `Ecto.Schema`
   """
   def field(schema, field_name) when is_binary(field_name) do
-    if has_field?(schema, field_name), do: String.to_atom(field_name)
+    if has_field?(schema, field_name) do
+      field = String.to_existing_atom(field_name)
+      {field, schema.__schema__(:type, field)}
+    else
+      {nil, :no_field}
+    end
   end
 
   @spec has_assoc?(Ecto.Schema, :binary) :: :boolean
