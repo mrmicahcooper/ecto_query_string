@@ -24,7 +24,7 @@ defmodule EctoQueryString.Reflection do
     schema.__schema__(:fields) |> Enum.map(&to_string/1)
   end
 
-  @spec has_field?(Ecto.Schema, :binary) :: :boolean
+  @spec has_field?(Ecto.Schema, binary()) :: boolean()
   @doc """
   Check if an `Ecto.Schema` has the passed in field
   """
@@ -32,7 +32,7 @@ defmodule EctoQueryString.Reflection do
     field_name in schema_fields(schema)
   end
 
-  @spec field(Ecto.Schema, :binary) :: :atom | nil
+  @spec field(Ecto.Schema, binary()) :: {atom(), atom()} | {nil, :no_field}
   @doc """
   Get the `:atom` representation of a field if it exists in the passed in `Ecto.Schema`
   """
@@ -45,7 +45,7 @@ defmodule EctoQueryString.Reflection do
     end
   end
 
-  @spec has_assoc?(Ecto.Schema, :binary) :: :boolean
+  @spec has_assoc?(Ecto.Schema, binary()) :: boolean()
   @doc """
   Check if an `Ecto.Schema` has the passed in association
   """
@@ -57,7 +57,7 @@ defmodule EctoQueryString.Reflection do
     assoc_name in list
   end
 
-  @spec assoc_schema(Ecto.Schema, :binary) :: Ecto.Schema
+  @spec assoc_schema(Ecto.Schema, binary()) :: Ecto.Schema
   @doc """
   Return an associated schema
   """
@@ -87,7 +87,7 @@ defmodule EctoQueryString.Reflection do
     end
   end
 
-  @spec foreign_key(Ecto.Schema, :atom) :: :atom
+  @spec foreign_key(Ecto.Schema, atom()) :: atom()
   @doc """
   Return an the foreign key of a schema's association
   """
@@ -102,7 +102,7 @@ defmodule EctoQueryString.Reflection do
     end
   end
 
-  @spec primary_key(Ecto.Schema) :: :atom
+  @spec primary_key(Ecto.Schema) :: atom()
   @doc """
   Return the primary key of a schema
   """
@@ -110,7 +110,7 @@ defmodule EctoQueryString.Reflection do
     schema.__schema__(:primary_key) |> List.first()
   end
 
-  @spec primary_keys(Ecto.Schema) :: :atom
+  @spec primary_keys(Ecto.Schema) :: atom()
   @doc """
   Return  all the primary keys of a schema
   """

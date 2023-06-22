@@ -123,10 +123,12 @@ defmodule EctoQueryString do
   end
 
   def query(query, querystring) when is_binary(querystring) do
-    params = querystring
-             |> URI.decode()
-             |> URI.query_decoder()
-             |> Enum.to_list()
+    params =
+      querystring
+      |> URI.decode()
+      |> URI.query_decoder()
+      |> Enum.to_list()
+
     query(query, params)
   end
 
@@ -141,14 +143,14 @@ defmodule EctoQueryString do
 
     case String.split(field, ".", trim: true) do
       [field] ->
-        {field, _type} = Reflection.field(schema, field)
-        {:field, field, value}
+        {field, type} = Reflection.field(schema, field)
+        {:field, field, type, value}
 
       [assoc, field] ->
         if assoc_schema = Reflection.assoc_schema(schema, assoc) do
           assoc = String.to_atom(assoc)
-          {field, _type} = Reflection.field(assoc_schema, field)
-          {:assoc, assoc, field, value}
+          {field, type} = Reflection.field(assoc_schema, field)
+          {:assoc, assoc, field, type, value}
         end
 
       _ ->
@@ -158,7 +160,7 @@ defmodule EctoQueryString do
 
   def selectable([field], {query, acc}) do
     case Reflection.source_schema(query) |> Reflection.field(field) do
-      nil ->
+      {nil, :no_field} ->
         {query, acc}
 
       {selection_field, _type} ->
@@ -174,7 +176,7 @@ defmodule EctoQueryString do
       |> Reflection.field(field)
 
     case field do
-      nil ->
+      {nil, :no_field} ->
         {query, acc}
 
       {assoc_selection_field, _type} ->
@@ -196,7 +198,7 @@ defmodule EctoQueryString do
     {assoc_field, [:id, foreign_key] ++ attributes}
   end
 
-  defp select_foreign_key(field, _acc),  do: field
+  defp select_foreign_key(field, _acc), do: field
 
   defp dynamic_segment({"order", values}, acc) do
     fields = values |> String.split(",", trim: true) |> Enum.map(&order_field/1)
@@ -212,6 +214,7 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"select", value}, acc) do
     source_schema = Reflection.source_schema(acc)
+
     select_segment =
       value
       |> String.split(",", trim: true)
@@ -223,12 +226,13 @@ defmodule EctoQueryString do
 
     join_fields = for {key, _} <- select_segment, uniq: true, do: key
 
-    select_fields = if join_fields != [] do
-      primary_keys = Reflection.primary_keys(source_schema)
-      select_segment ++ primary_keys
-    else
-      select_segment
-    end
+    select_fields =
+      if join_fields != [] do
+        primary_keys = Reflection.primary_keys(source_schema)
+        select_segment ++ primary_keys
+      else
+        select_segment
+      end
 
     acc =
       Enum.reduce(join_fields, acc, fn assoc_field, query ->
@@ -250,13 +254,13 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"greater:" <> key, value}, acc) do
     case queryable(acc, key) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _} ->
+      {:field, key, _type, _} ->
         from(query in acc, where: field(query, ^key) > ^value)
 
-      {:assoc, assoc_field, key, _} ->
+      {:assoc, assoc_field, key, _type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) > ^value
@@ -269,13 +273,13 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"greaterequal:" <> key, value}, acc) do
     case queryable(acc, key) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _} ->
+      {:field, key, _type, _} ->
         from(query in acc, where: field(query, ^key) >= ^value)
 
-      {:assoc, assoc_field, key, _} ->
+      {:assoc, assoc_field, key, _type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) >= ^value
@@ -288,13 +292,13 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"less:" <> key, value}, acc) do
     case queryable(acc, key) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _} ->
+      {:field, key, _type, _} ->
         from(query in acc, where: field(query, ^key) < ^value)
 
-      {:assoc, assoc_field, key, _} ->
+      {:assoc, assoc_field, key, _type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) < ^value
@@ -307,13 +311,13 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"lessequal:" <> key, value}, acc) do
     case queryable(acc, key) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _} ->
+      {:field, key, _type, _} ->
         from(query in acc, where: field(query, ^key) <= ^value)
 
-      {:assoc, assoc_field, key, _} ->
+      {:assoc, assoc_field, key, _type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) <= ^value
@@ -326,10 +330,10 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"range:" <> key, value}, acc) do
     case queryable(acc, key) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _} ->
+      {:field, key, _type, _} ->
         case String.split(value, ":", trim: true) do
           [".", "."] ->
             acc
@@ -349,7 +353,7 @@ defmodule EctoQueryString do
             acc
         end
 
-      {:assoc, assoc_field, key, _} ->
+      {:assoc, assoc_field, key, _type, _} ->
         case String.split(value, ":", trim: true) do
           [".", "."] ->
             acc
@@ -385,13 +389,13 @@ defmodule EctoQueryString do
     value = String.replace(value, ~r/\*+/, "%")
 
     case queryable(acc, key) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _} ->
+      {:field, key, _type, _} ->
         from(query in acc, where: ilike(field(query, ^key), ^value))
 
-      {:assoc, assoc_field, key, _} ->
+      {:assoc, assoc_field, key, _type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: ilike(field(child, ^key), ^value)
@@ -406,13 +410,13 @@ defmodule EctoQueryString do
     value = String.replace(value, ~r/\*+/, "%")
 
     case queryable(acc, key) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _} ->
+      {:field, key, _type, _} ->
         from(query in acc, where: like(field(query, ^key), ^value))
 
-      {:assoc, assoc_field, key, _} ->
+      {:assoc, assoc_field, key, _type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: like(field(child, ^key), ^value)
@@ -456,25 +460,25 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"!" <> key, value}, acc) do
     case queryable(acc, key, value) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {_, _, nil} ->
+      {_, _, _type, nil} ->
         acc
 
-      {:field, key, [value]} ->
+      {:field, key, _type, [value]} ->
         from(query in acc, where: field(query, ^key) != ^value)
 
-      {:field, key, value} when is_list(value) ->
+      {:field, key, _type, value} when is_list(value) ->
         from(query in acc, where: field(query, ^key) not in ^value)
 
-      {:assoc, assoc_field, key, [value]} ->
+      {:assoc, assoc_field, key, _type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) != ^value
         )
 
-      {:assoc, assoc_field, key, value} when is_list(value) ->
+      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) not in ^value
@@ -487,25 +491,25 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({"or:" <> key, value}, acc) do
     case queryable(acc, key, value) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {_, _, nil} ->
+      {_, _, _type, nil} ->
         acc
 
-      {:field, key, [value]} ->
+      {:field, key, _type, [value]} ->
         from(query in acc, or_where: field(query, ^key) == ^value)
 
-      {:field, key, value} when is_list(value) ->
+      {:field, key, _type, value} when is_list(value) ->
         from(query in acc, or_where: field(query, ^key) in ^value)
 
-      {:assoc, assoc_field, key, [value]} ->
+      {:assoc, assoc_field, key, _type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           or_where: field(child, ^key) == ^value
         )
 
-      {:assoc, assoc_field, key, value} when is_list(value) ->
+      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           or_where: field(child, ^key) in ^value
@@ -518,25 +522,25 @@ defmodule EctoQueryString do
 
   defp dynamic_segment({key, value}, acc) do
     case queryable(acc, key, value) do
-      {:field, nil, _} ->
+      {:field, nil, _type, _} ->
         acc
 
-      {_, _, nil} ->
+      {_, _, _type, nil} ->
         acc
 
-      {:field, key, [value]} ->
+      {:field, key, _type, [value]} ->
         from(query in acc, where: field(query, ^key) == ^value)
 
-      {:field, key, value} when is_list(value) ->
+      {:field, key, _type, value} when is_list(value) ->
         from(query in acc, where: field(query, ^key) in ^value)
 
-      {:assoc, assoc_field, key, [value]} ->
+      {:assoc, assoc_field, key, _type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) == ^value
         )
 
-      {:assoc, assoc_field, key, value} when is_list(value) ->
+      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
           where: field(child, ^key) in ^value

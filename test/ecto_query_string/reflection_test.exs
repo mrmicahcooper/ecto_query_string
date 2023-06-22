@@ -83,5 +83,4 @@ defmodule EctoQueryString.ReflectionTest do
       assert Reflection.foreign_key(User, :foobars) == :foo_id
     end
   end
-
 end
