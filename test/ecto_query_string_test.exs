@@ -11,11 +11,13 @@ defmodule EctoQueryStringTest do
 
   test ".queryable returns the field if its in the query's schema" do
     query = from(f in Foo)
-    assert queryable(query, "title") == {:field, :title, nil}
-    assert queryable(query, "description") == {:field, :description, nil}
-    assert queryable(query, "bar") == {:field, nil, nil}
-    assert queryable(query, "bars.name") == {:assoc, :bars, :name, nil}
-    assert queryable(query, "bars.name", "one, two") == {:assoc, :bars, :name, ["one", "two"]}
+    assert queryable(query, "title") == {:field, :title, :string, nil}
+    assert queryable(query, "description") == {:field, :description, :string, nil}
+    assert queryable(query, "bar") == {:field, nil, :no_field, nil}
+    assert queryable(query, "bars.name") == {:assoc, :bars, :name, :string, nil}
+
+    assert queryable(query, "bars.name", "one, two") ==
+             {:assoc, :bars, :name, :string, ["one", "two"]}
   end
 
   test "all", %{query: query} do
@@ -160,6 +162,20 @@ defmodule EctoQueryStringTest do
     string_query = query(query, querystring)
     expected_query = from(user in User, where: user.age > ^"30")
     assert_queries_match(string_query, expected_query)
+  end
+
+  test "WHERE key > date_value", %{query: query} do
+    querystring = "greater:inserted_at=2021-01-01"
+    string_query = query(query, querystring)
+    expected_query = from(user in User, where: user.inserted_at > ^"2021-01-01 00:00:00")
+
+    assert_queries_match(string_query, expected_query)
+
+    assert Ecto.Adapters.SQL.to_sql(:all, Repo, string_query) ==
+             {
+               ~S|SELECT u0."id", u0."username", u0."email", u0."age", u0."password_digest", u0."inserted_at", u0."updated_at" FROM "users" AS u0 WHERE (u0."inserted_at" > $1)|,
+               [~N[2021-01-01 00:00:00]]
+             }
   end
 
   test "WHERE key >= value", %{query: query} do
@@ -413,5 +429,36 @@ defmodule EctoQueryStringTest do
     string_query = query(query, querystring)
     expected_query = from(user in User, order_by: ^[desc: :username])
     assert_queries_match(string_query, expected_query)
+  end
+
+  describe "date_format/2" do
+    test "date string for naive_datetime" do
+      assert date_time_format("2023-01-01", :naive_datetime) == "2023-01-01 00:00:00"
+      assert date_time_format("2023-01-01 12:12", :naive_datetime) == "2023-01-01 12:12:00"
+    end
+
+    test "date string for naive_datetime_usec" do
+      assert date_time_format("2023-01-01", :naive_datetime_usec) == "2023-01-01 00:00:00.000000"
+    end
+
+    test "date string for utc_datetime_usec" do
+      assert date_time_format("2023-01-01", :utc_datetime_usec) == "2023-01-01 00:00:00.000000Z"
+
+      assert date_time_format("2023-01-01T00:00:00.000000Z", :utc_datetime_usec) ==
+               "2023-01-01 00:00:00.000000Z"
+    end
+
+    test "time string for time" do
+      assert date_time_format("11:01:31", :time) == "11:01:31"
+      assert date_time_format("11:01:31.123436", :time) == "11:01:31"
+    end
+
+    test "time string for time_usec" do
+      assert date_time_format("11:01:31.123436", :time_usec) == "11:01:31.123436"
+    end
+
+    test "non date or time" do
+      assert date_time_format("mrmicahcooper", :string) == "mrmicahcooper"
+    end
   end
 end

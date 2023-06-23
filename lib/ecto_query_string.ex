@@ -257,13 +257,13 @@ defmodule EctoQueryString do
       {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _type, _} ->
-        from(query in acc, where: field(query, ^key) > ^value)
+      {:field, key, type, _} ->
+        from(query in acc, where: field(query, ^key) > ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, _} ->
+      {:assoc, assoc_field, key, type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) > ^value
+          where: field(child, ^key) > ^date_time_format(value, type)
         )
 
       _ ->
@@ -276,13 +276,13 @@ defmodule EctoQueryString do
       {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _type, _} ->
-        from(query in acc, where: field(query, ^key) >= ^value)
+      {:field, key, type, _} ->
+        from(query in acc, where: field(query, ^key) >= ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, _} ->
+      {:assoc, assoc_field, key, type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) >= ^value
+          where: field(child, ^key) >= ^date_time_format(value, type)
         )
 
       _ ->
@@ -295,13 +295,13 @@ defmodule EctoQueryString do
       {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _type, _} ->
-        from(query in acc, where: field(query, ^key) < ^value)
+      {:field, key, type, _} ->
+        from(query in acc, where: field(query, ^key) < ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, _} ->
+      {:assoc, assoc_field, key, type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) < ^value
+          where: field(child, ^key) < ^date_time_format(value, type)
         )
 
       _ ->
@@ -314,13 +314,13 @@ defmodule EctoQueryString do
       {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _type, _} ->
-        from(query in acc, where: field(query, ^key) <= ^value)
+      {:field, key, type, _} ->
+        from(query in acc, where: field(query, ^key) <= ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, _} ->
+      {:assoc, assoc_field, key, type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) <= ^value
+          where: field(child, ^key) <= ^date_time_format(value, type)
         )
 
       _ ->
@@ -392,13 +392,13 @@ defmodule EctoQueryString do
       {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _type, _} ->
-        from(query in acc, where: ilike(field(query, ^key), ^value))
+      {:field, key, type, _} ->
+        from(query in acc, where: ilike(field(query, ^key), ^date_time_format(value, type)))
 
-      {:assoc, assoc_field, key, _type, _} ->
+      {:assoc, assoc_field, key, type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: ilike(field(child, ^key), ^value)
+          where: ilike(field(child, ^key), ^date_time_format(value, type))
         )
 
       _ ->
@@ -413,13 +413,13 @@ defmodule EctoQueryString do
       {:field, nil, _type, _} ->
         acc
 
-      {:field, key, _type, _} ->
-        from(query in acc, where: like(field(query, ^key), ^value))
+      {:field, key, type, _} ->
+        from(query in acc, where: like(field(query, ^key), ^date_time_format(value, type)))
 
-      {:assoc, assoc_field, key, _type, _} ->
+      {:assoc, assoc_field, key, type, _} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: like(field(child, ^key), ^value)
+          where: like(field(child, ^key), ^date_time_format(value, type))
         )
 
       _ ->
@@ -435,22 +435,22 @@ defmodule EctoQueryString do
       {_, _, _type, nil} ->
         acc
 
-      {:field, key, _type, [value]} ->
-        from(query in acc, or_where: field(query, ^key) != ^value)
+      {:field, key, type, [value]} ->
+        from(query in acc, or_where: field(query, ^key) != ^date_time_format(value, type))
 
-      {:field, key, _type, value} when is_list(value) ->
-        from(query in acc, or_where: field(query, ^key) not in ^value)
+      {:field, key, type, value} when is_list(value) ->
+        from(query in acc, or_where: field(query, ^key) not in ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, [value]} ->
+      {:assoc, assoc_field, key, type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          or_where: field(child, ^key) != ^value
+          or_where: field(child, ^key) != ^date_time_format(value, type)
         )
 
-      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
+      {:assoc, assoc_field, key, type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          or_where: field(child, ^key) not in ^value
+          or_where: field(child, ^key) not in ^date_time_format(value, type)
         )
 
       _ ->
@@ -466,22 +466,22 @@ defmodule EctoQueryString do
       {_, _, _type, nil} ->
         acc
 
-      {:field, key, _type, [value]} ->
-        from(query in acc, where: field(query, ^key) != ^value)
+      {:field, key, type, [value]} ->
+        from(query in acc, where: field(query, ^key) != ^date_time_format(value, type))
 
-      {:field, key, _type, value} when is_list(value) ->
-        from(query in acc, where: field(query, ^key) not in ^value)
+      {:field, key, type, value} when is_list(value) ->
+        from(query in acc, where: field(query, ^key) not in ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, [value]} ->
+      {:assoc, assoc_field, key, type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) != ^value
+          where: field(child, ^key) != ^date_time_format(value, type)
         )
 
-      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
+      {:assoc, assoc_field, key, type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) not in ^value
+          where: field(child, ^key) not in ^date_time_format(value, type)
         )
 
       _ ->
@@ -497,22 +497,22 @@ defmodule EctoQueryString do
       {_, _, _type, nil} ->
         acc
 
-      {:field, key, _type, [value]} ->
-        from(query in acc, or_where: field(query, ^key) == ^value)
+      {:field, key, type, [value]} ->
+        from(query in acc, or_where: field(query, ^key) == ^date_time_format(value, type))
 
-      {:field, key, _type, value} when is_list(value) ->
-        from(query in acc, or_where: field(query, ^key) in ^value)
+      {:field, key, type, value} when is_list(value) ->
+        from(query in acc, or_where: field(query, ^key) in ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, [value]} ->
+      {:assoc, assoc_field, key, type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          or_where: field(child, ^key) == ^value
+          or_where: field(child, ^key) == ^date_time_format(value, type)
         )
 
-      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
+      {:assoc, assoc_field, key, type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          or_where: field(child, ^key) in ^value
+          or_where: field(child, ^key) in ^date_time_format(value, type)
         )
 
       _ ->
@@ -528,26 +528,56 @@ defmodule EctoQueryString do
       {_, _, _type, nil} ->
         acc
 
-      {:field, key, _type, [value]} ->
-        from(query in acc, where: field(query, ^key) == ^value)
+      {:field, key, type, [value]} ->
+        from(query in acc, where: field(query, ^key) == ^date_time_format(value, type))
 
-      {:field, key, _type, value} when is_list(value) ->
-        from(query in acc, where: field(query, ^key) in ^value)
+      {:field, key, type, value} when is_list(value) ->
+        from(query in acc, where: field(query, ^key) in ^date_time_format(value, type))
 
-      {:assoc, assoc_field, key, _type, [value]} ->
+      {:assoc, assoc_field, key, type, [value]} ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) == ^value
+          where: field(child, ^key) == ^date_time_format(value, type)
         )
 
-      {:assoc, assoc_field, key, _type, value} when is_list(value) ->
+      {:assoc, assoc_field, key, type, value} when is_list(value) ->
         from(parent in acc,
           join: child in assoc(parent, ^assoc_field),
-          where: field(child, ^key) in ^value
+          where: field(child, ^key) in ^date_time_format(value, type)
         )
 
       _ ->
         acc
     end
   end
+
+  @datetime_types ~w[naive_datetime naive_datetime_usec utc_datetime utc_datetime_usec]a
+  def date_time_format(value, type) when type in @datetime_types do
+    length = String.length(value)
+    date_string = value <> String.slice("0000-00-00 00:00:00.000000Z", length..-1)
+
+    case Ecto.Type.cast(type, date_string) do
+      {:ok, naive} ->
+        naive.__struct__.to_string(naive)
+
+      _else ->
+        value
+    end
+  end
+
+  @time_types ~w[time time_usec]a
+  def date_time_format(value, type) when type in @time_types do
+    length = String.length(value)
+    date_string = value <> String.slice("00:00:00.000000Z", length..-1)
+
+    case Ecto.Type.cast(type, date_string) do
+      {:ok, naive} ->
+        naive.__struct__.to_string(naive)
+
+      _else ->
+        value
+    end
+  end
+
+  def date_time_format(value, _type), do: value
 end
