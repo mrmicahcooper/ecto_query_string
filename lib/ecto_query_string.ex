@@ -552,7 +552,7 @@ defmodule EctoQueryString do
   end
 
   @datetime_types ~w[naive_datetime naive_datetime_usec utc_datetime utc_datetime_usec]a
-  def date_time_format(value, type) when type in @datetime_types do
+  def date_time_format(value, type) when type in @datetime_types and is_binary(value) do
     length = String.length(value)
     date_string = value <> String.slice("0000-00-00 00:00:00.000000Z", length..-1)
 
@@ -566,7 +566,7 @@ defmodule EctoQueryString do
   end
 
   @time_types ~w[time time_usec]a
-  def date_time_format(value, type) when type in @time_types do
+  def date_time_format(value, type) when type in @time_types and is_binary(value) do
     length = String.length(value)
     date_string = value <> String.slice("00:00:00.000000Z", length..-1)
 

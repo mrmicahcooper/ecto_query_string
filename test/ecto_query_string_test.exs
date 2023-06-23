@@ -234,6 +234,27 @@ defmodule EctoQueryStringTest do
     assert_queries_match(string_query, expected_query)
   end
 
+  test "WHERE key < max and key > . (anything)", %{query: query} do
+    querystring = "range:age=.:100"
+    string_query = query(query, querystring)
+    expected_query = from(user in User, where: user.age < ^"100")
+    assert_queries_match(string_query, expected_query)
+
+    assert Ecto.Adapters.SQL.to_sql(:all, Repo, string_query) ==
+             {
+               ~S|SELECT u0."id", u0."username", u0."email", u0."age", u0."password_digest", u0."inserted_at", u0."updated_at" FROM "users" AS u0 WHERE (u0."age" < $1)|,
+               [100]
+             }
+  end
+
+  test "WHERE key < . (anything) and key > min ", %{query: query} do
+    querystring = "range:age=100:."
+    string_query = query(query, querystring)
+    expected_query = from(user in User, where: user.age > ^"100")
+    assert_queries_match(string_query, expected_query)
+  end
+
+
   test "JOINS t2 ON t1.foreign_key = t1.primary_key WHERE key < value AND key > min", %{
     query: query
   } do
@@ -460,5 +481,10 @@ defmodule EctoQueryStringTest do
     test "non date or time" do
       assert date_time_format("mrmicahcooper", :string) == "mrmicahcooper"
     end
+
+    test "actual date passed in" do
+      assert date_time_format(~T[00:00:00], :time) == ~T[00:00:00]
+    end
+
   end
 end
