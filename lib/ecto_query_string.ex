@@ -349,7 +349,7 @@ defmodule EctoQueryString do
               where: field(query, ^key) > ^min and field(query, ^key) < ^max
             )
 
-          :else ->
+          _else ->
             acc
         end
 
@@ -376,7 +376,7 @@ defmodule EctoQueryString do
               where: field(child, ^key) > ^min and field(child, ^key) < ^max
             )
 
-          :else ->
+          _else ->
             acc
         end
 
