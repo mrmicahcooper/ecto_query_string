@@ -100,7 +100,7 @@ defmodule EctoQueryString do
   ```
   """
 
-  @spec query(Ecto.Query, binary() | map() | keyword() | nil) :: Ecto.Query
+  @spec query(Ecto.Query, binary() | map() | keyword() | nil, list()) :: Ecto.Query
   @doc """
   Uses a querystring or a map of params to extend an `Ecto.Query`
 
@@ -108,28 +108,36 @@ defmodule EctoQueryString do
   majority of your filtering, ordering, and basic selects.
 
   """
-  def query(query, ""), do: query(query, [])
-  def query(query, nil), do: query(query, [])
+  def query(query, "", _fields), do: query(query, [], [])
+  def query(query, nil, _fields), do: query(query, [], [])
 
-  def query(query, params) when is_map(params) do
+  def query(query, params, allowed_fields) when is_map(params) do
     params = params |> Enum.into([])
-    query(query, params)
+    query(query, params, allowed_fields)
   end
 
-  def query(query, params) when is_list(params) do
-    query = Enum.reduce(params, query, &dynamic_segment/2)
+  def query(query, params, allowed_fields) when is_list(params) do
+    allowed_fields = Enum.map(allowed_fields, &to_string/1)
+    require IEx
+    IEx.pry()
+
+    query =
+      Enum.reduce(params, query, &dynamic_segment/2)
+      |> IO.inspect()
+
     debug(inspect(query))
     query
+
+    params = params |> Enum.into(%{})
+    query(query, params, allowed_fields)
   end
 
-  def query(query, querystring) when is_binary(querystring) do
+  def query(query, querystring, allowed_fields) when is_binary(querystring) do
     params =
       querystring
-      |> URI.decode()
-      |> URI.query_decoder()
-      |> Enum.to_list()
+      |> URI.decode_query()
 
-    query(query, params)
+    query(query, params, allowed_fields)
   end
 
   @doc false
